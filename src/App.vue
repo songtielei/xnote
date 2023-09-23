@@ -1,29 +1,67 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import { ref, reactive } from 'vue';
 
-let fileHandle;
+const contentList = ref<any>([]);
+
+//   const opfsRoot = await navigator.storage.getDirectory();
+// // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
+// console.log(opfsRoot);
+// const fileHandle = await opfsRoot.getFileHandle("my first file", {
+//   create: true,
+// });
+// console.log('file created');
+// const directoryHandle = await opfsRoot.getDirectoryHandle("my first folder", {
+//   create: true,
+// });
+// const nestedFileHandle = await directoryHandle.getFileHandle(
+//   "my first nested file",
+//   { create: true },
+// );
+// const nestedDirectoryHandle = await directoryHandle.getDirectoryHandle(
+//   "my first nested folder",
+//   { create: true },
+// );
+// console.log('file created');
+// const existingFileHandle = await opfsRoot.getFileHandle("my first file");
+// const existingDirectoryHandle =
+//   await opfsRoot.getDirectoryHandle("my first folder");
+//   const contents = "Some text";
+// // 获取一个可写流。
+// const writable = await fileHandle.createWritable();
+// // 将文件内容写入数据流。
+// await writable.write(contents);
+// // 关闭数据流，保存内容。
+// await writable.close();
+//   const file = await fileHandle.getFile();
+// console.log(await file.text());
+    
+		let fileHandle: FileSystemDirectoryHandle;
 		let contents;
 		let file;
 
 		// file picker
 		async function getFileHandle() {
-			const options = {
-				types: [
-					{
-						description: "Text Files",
-						accept: {
-							"text/plain": [".md"]
-						}
-					}
-				]
-			};
-			[fileHandle] = await window.showOpenFilePicker(options);
-			file = await fileHandle.getFile();
-			fileName.innerHTML = '🔥 Now you can edit ' + file.name + ' and save it to disk.';
-			contents = await file.text();
-			textArea.value = contents;
-		}
+
+			fileHandle = await window.showDirectoryPicker();
+			for await (const handle of fileHandle.values()) {
+           
+		   if (handle.kind === 'directory') {
+			continue;
+		   }
+const file = await handle.getFile();
+    if (file !== null && !file.name.startsWith('.')) {
+				const text = await file.text();
+  console.log(handle.lastModified);
+  contentList.value.push({'content': text.substring(0, 20), 'dateTime': handle.lastModified});
+    }
+     }
+
+}
+
+
+
 		// write file
 		async function writeFile(fileHandle, contents) {
 			// Create a FileSystemWritableFileStream to write to.
@@ -35,22 +73,21 @@ let fileHandle;
 		}
 
 
-		// button clicks
-		getFileHandleButton.addEventListener("click", getFileHandle);
-		writeFileButton.addEventListener("click", _ => {
-			writeFile(fileHandle, textArea.value).
-				then(function () {
-					info.textContent = "🎉 Successfully saved to disk!"
-				})
-		});
-    
+const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
+
 </script>
 
 <template>
   <main>
-    <div class="sidebar"></div>
+    <div class="sidebar">
+					<div class="form-group">
+					<button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+				</div>
+	</div>
     <div class="nav">
-      hello
+      <div class="item" v-for="item in contentList">
+  {{ item.dateTime }} {{ item.content}}
+</div>
     </div>
     <div class="content">
       rght
@@ -67,20 +104,29 @@ main {
   border: solid;
 
   >.sidebar {
-    width: 30px;
-    background-color: white;
-    color: #fff;
+    width: 50px;
+    //background-color: white;
+
   }
   >.nav {
+	border: solid;
     width: 300px;
-    background-color: #000;
-    color: #fff;
+    //background-color: white;
+
   }
 
   >.content {
     flex: 1;
-    background-color: #f5f7f9;
+    //background-color: #f5f7f9;
 
   }
+}
+.form-group {
+	position: absolute;
+	bottom: 0px;
+}
+.item {
+	border: solid;
+	height: 50px;
 }
 </style>
