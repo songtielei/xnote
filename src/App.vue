@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { ref, reactive } from 'vue';
+import { ref, reactive, shallowRef } from 'vue';
+import Cherry from "cherry-markdown";
+import "cherry-markdown/dist/cherry-markdown.min.css";
+import CherryMarkdown from './components/CherryMarkdown.vue'
 
 const contentList = ref<any>([]);
 
@@ -74,6 +77,10 @@ const file = await handle.getFile();
 
 
 const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
+// document.getElementById('content').innerHTML =
+//       marked.parse('# Marked in the browser\n\nRendered by **marked**.');
+
+
 
 </script>
 
@@ -90,7 +97,8 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 </div>
     </div>
     <div class="content">
-      rght
+<CherryMarkdown :tocVisiable="true" />
+
     </div>
   </main>
 </template>
