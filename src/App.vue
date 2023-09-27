@@ -97,7 +97,7 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 </div>
     </div>
     <div class="content">
-<CherryMarkdown :tocVisiable="true" />
+<CherryMarkdown :tocVisiable="false" />
 
     </div>
   </main>

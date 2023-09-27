@@ -270,7 +270,7 @@ export default {
                     beforeImageMounted: beforeImageMounted
                 },
                 toolbars: {
-                    showToolbar: this.displayModal == 'edit',
+                    showToolbar: false,
                     sidebar: ['mobilePreview', 'copy', 'theme'],
                     toolbar: [
                         'bold',
