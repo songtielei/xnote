@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { ref, reactive, shallowRef } from 'vue';
-import Cherry from "cherry-markdown";
-import "cherry-markdown/dist/cherry-markdown.min.css";
+import { ref, reactive, shallowRef } from 'vue'
+import Cherry from 'cherry-markdown'
+import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
 
-const contentList = ref<any>([]);
+const contentList = ref<any>([])
 
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
@@ -39,66 +39,54 @@ const contentList = ref<any>([]);
 // await writable.close();
 //   const file = await fileHandle.getFile();
 // console.log(await file.text());
-    
-		let fileHandle: FileSystemDirectoryHandle;
-		let contents;
-		let file;
 
-		// file picker
-		async function getFileHandle() {
+let fileHandle: FileSystemDirectoryHandle
+let contents
+let file
 
-			fileHandle = await window.showDirectoryPicker();
-			for await (const handle of fileHandle.values()) {
-           
-		   if (handle.kind === 'directory') {
-			continue;
-		   }
-const file = await handle.getFile();
-    if (file !== null && !file.name.startsWith('.')) {
-				const text = await file.text();
-  console.log(handle.lastModified);
-  contentList.value.push({'content': text.substring(0, 20), 'dateTime': handle.lastModified});
+// file picker
+async function getFileHandle() {
+  fileHandle = await window.showDirectoryPicker()
+  for await (const handle of fileHandle.values()) {
+    if (handle.kind === 'directory') {
+      continue
     }
-     }
-
+    const file = await handle.getFile()
+    if (file !== null && !file.name.startsWith('.')) {
+      const text = await file.text()
+      console.log(handle.lastModified)
+      contentList.value.push({ content: text.substring(0, 20), dateTime: handle.lastModified })
+    }
+  }
 }
 
-
-
-		// write file
-		async function writeFile(fileHandle, contents) {
-			// Create a FileSystemWritableFileStream to write to.
-			const writable = await fileHandle.createWritable();
-			// Write the contents of the file to the stream.
-			await writable.write(contents);
-			// Close the file and write the contents to disk.
-			await writable.close();
-		}
-
+// write file
+async function writeFile(fileHandle, contents) {
+  // Create a FileSystemWritableFileStream to write to.
+  const writable = await fileHandle.createWritable()
+  // Write the contents of the file to the stream.
+  await writable.write(contents)
+  // Close the file and write the contents to disk.
+  await writable.close()
+}
 
 const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 // document.getElementById('content').innerHTML =
 //       marked.parse('# Marked in the browser\n\nRendered by **marked**.');
-
-
-
 </script>
 
 <template>
   <main>
     <div class="sidebar">
-					<div class="form-group">
-					<button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
-				</div>
-	</div>
+      <div class="form-group">
+        <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+      </div>
+    </div>
     <div class="nav">
-      <div class="item" v-for="item in contentList">
-  {{ item.dateTime }} {{ item.content}}
-</div>
+      <div class="item" v-for="item in contentList">{{ item.dateTime }} {{ item.content }}</div>
     </div>
     <div class="content">
-<CherryMarkdown :tocVisiable="false" />
-
+      <CherryMarkdown :tocVisiable="false" />
     </div>
   </main>
 </template>
@@ -111,30 +99,27 @@ main {
   display: flex;
   border: solid;
 
-  >.sidebar {
+  > .sidebar {
     width: 50px;
     //background-color: white;
-
   }
-  >.nav {
-	border: solid;
+  > .nav {
+    border: solid;
     width: 300px;
     //background-color: white;
-
   }
 
-  >.content {
+  > .content {
     flex: 1;
     //background-color: #f5f7f9;
-
   }
 }
 .form-group {
-	position: absolute;
-	bottom: 0px;
+  position: absolute;
+  bottom: 0px;
 }
 .item {
-	border: solid;
-	height: 50px;
+  border: solid;
+  height: 50px;
 }
 </style>
