@@ -43,6 +43,8 @@ const contentList = ref<any>([])
 let fileHandle: FileSystemDirectoryHandle
 let contents
 let file
+let isLoad = false;
+let markdownContent = '';
 
 // file picker
 async function getFileHandle() {
@@ -56,8 +58,15 @@ async function getFileHandle() {
       const text = await file.text()
       console.log(handle.lastModified)
       contentList.value.push({ content: text.substring(0, 20), dateTime: handle.lastModified })
+      if (!isLoad) {
+        //console.log(CherryMarkdown)
+        markdownContent = text;
+        isLoad = true;
+      }
+      
     }
   }
+  isLoad = false;
 }
 
 // write file
@@ -86,7 +95,7 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
       <div class="item" v-for="item in contentList">{{ item.dateTime }} {{ item.content }}</div>
     </div>
     <div class="content">
-      <CherryMarkdown :tocVisiable="false" />
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" />
     </div>
   </main>
 </template>

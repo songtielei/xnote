@@ -98,6 +98,7 @@ import Cherry from 'cherry-markdown/dist/cherry-markdown.core';
 // import Cherry from 'cherry-markdown'
 // import 'cherry-markdown/dist/cherry-markdown.min.css'
 
+let cherryInstance;
 export default {
     name: "sy-cherry-markdown",
     props: {
@@ -122,6 +123,13 @@ export default {
             default: 'edit'
         }
     },
+    watch: {
+        value(val) {
+            console.log(val);
+            this.setMarkdown(val, true);
+        }
+    },
+
     data() {
         return {
             // 编辑器的显示模式
@@ -134,7 +142,7 @@ export default {
             tocList: [],
 
             // markdown编辑器对象
-            cherrInstance: null,
+            //cherryInstance: null,
 
             curTab: 0,
         };
@@ -145,12 +153,13 @@ export default {
         // 展示模式
         this.switchModel('edit');
         this.showToc(this.toc_visiable)
+        this.setMarkdown(this.value, false);
     },
     beforeDestroy() {
         while (this.$refs[this.mdId].firstChild) {
             this.$refs[this.mdId].removeChild(this.$refs[this.mdId].firstChild);
         }
-        this.cherrInstance = null
+        cherryInstance = null
     },
     methods: {
 
@@ -173,7 +182,7 @@ export default {
             while (this.$refs[this.mdId].firstChild) {
                 this.$refs[this.mdId].removeChild(this.$refs[this.mdId].firstChild);
             }
-            this.cherrInstance = null
+            cherryInstance = null
             this.initCherryMD();
             if (val == 'edit') {
                 this.switchModel('edit&preview');
@@ -186,7 +195,7 @@ export default {
          * 获取文档内容中的标题目录
          */
         getTitles() {
-            this.tocList = this.cherrInstance.getToc()
+            this.tocList = cherryInstance.getToc()
             // console.log(this.tocList)
         },
 
@@ -259,8 +268,10 @@ export default {
                 fileUpload,
                 mdId
             } = this;
+            //console.log(hello);
+            console.log(this.value);
             const defaultValue = value || this.value;
-            this.cherrInstance = new Cherry({
+            cherryInstance = new Cherry({
                 id: mdId,
                 value: defaultValue,
                 fileUpload: fileUpload,
@@ -321,7 +332,7 @@ export default {
             //     if (response.code == 0) {
             //         let imgMdStr = `![${response.data.file_name}](${response.data.ref_url})`;
             //         console.log(imgMdStr)
-            //         this.cherrInstance.insert(imgMdStr)
+            //         this.cherryInstance.insert(imgMdStr)
             //     }
             // });
         },
@@ -361,23 +372,23 @@ export default {
          * @param {Object} keepCursor 自动设置焦点到内容
          */
         setMarkdown(content, keepCursor) {
-            if (!this.cherrInstance) { // 未加载则重新初始化
+            if (!cherryInstance) { // 未加载则重新初始化
                 this.initCherryMD(content)
                 return
             }
-            this.cherrInstance.setMarkdown(content, keepCursor)
+            cherryInstance.setMarkdown(content, keepCursor)
         },
 
         getCherryContent() {
-            const result = this.cherrInstance.getMarkdown() // 获取markdown内容
+            const result = cherryInstance.getMarkdown() // 获取markdown内容
             return result
         },
         getCherryHtml() {
-            const result = this.cherrInstance.getHtml()
+            const result = cherryInstance.getHtml()
             return result
         },
         getData() {
-            const result = this.cherrInstance.getHtml()
+            const result = cherryInstance.getHtml()
             return result
         },
 
@@ -385,7 +396,7 @@ export default {
          * type：{'pdf'|'img'}
          */
         exportMD(type = 'pdf') {
-            this.cherrInstance.export(type)
+            cherryInstance.export(type)
         },
 
         /**
@@ -393,17 +404,17 @@ export default {
          */
         switchModel(model) {
             if (this.isInit()) {
-                this.cherrInstance.switchModel(model)
+                cherryInstance.switchModel(model)
             }
         },
 
         insert(content, isSelect = false, anchor = [], focus = true) {
             console.log(content)
-            this.cherrInstance.insert(content, isSelect, anchor, focus)
+            cherryInstance.insert(content, isSelect, anchor, focus)
         },
 
         isInit() {
-            if (this.cherrInstance) {
+            if (cherryInstance) {
                 return true
             }
             this.$message.warning('编辑器未初始化，请检查')
