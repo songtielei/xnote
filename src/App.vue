@@ -44,7 +44,7 @@ let fileHandle: FileSystemDirectoryHandle
 let contents
 let file
 let isLoad = false;
-let markdownContent = '';
+let markdownContent = ref('');
 
 // file picker
 async function getFileHandle() {
@@ -56,17 +56,25 @@ async function getFileHandle() {
     const file = await handle.getFile()
     if (file !== null && !file.name.startsWith('.')) {
       const text = await file.text()
-      console.log(handle.lastModified)
-      contentList.value.push({ content: text.substring(0, 20), dateTime: handle.lastModified })
+      //console.log(file.lastModified)
+      contentList.value.push({ content: text.substring(0, 20), dateTime: handle.lastModified, handle: handle })
       if (!isLoad) {
         //console.log(CherryMarkdown)
-        markdownContent = text;
+        markdownContent.value = text;
         isLoad = true;
       }
       
     }
   }
   isLoad = false;
+}
+async function content(handle) {
+
+  const file = await handle.getFile();
+  const text = await file.text();
+
+  //console.log(text);
+  markdownContent.value = text;
 }
 
 // write file
@@ -82,6 +90,10 @@ async function writeFile(fileHandle, contents) {
 const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 // document.getElementById('content').innerHTML =
 //       marked.parse('# Marked in the browser\n\nRendered by **marked**.');
+
+async function handleScroll() {
+  console.log('scroll');
+}
 </script>
 
 <template>
@@ -91,8 +103,8 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
         <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
       </div>
     </div>
-    <div class="nav">
-      <div class="item" v-for="item in contentList">{{ item.dateTime }} {{ item.content }}</div>
+    <div class="nav" @scroll="handleScroll">
+      <div class="item" v-for="item in contentList" @click='content(item.handle)'>{{ item.dateTime }} {{ item.content }}</div>
     </div>
     <div class="content">
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" />
@@ -115,6 +127,7 @@ main {
   > .nav {
     border: solid;
     width: 300px;
+    overflow: scroll;
     //background-color: white;
   }
 
