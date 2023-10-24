@@ -6,7 +6,9 @@ import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
 
+let showPreference = ref(false);
 const contentList = ref<any>([])
+const workspaceList = ref<any>([]);
 
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
@@ -49,6 +51,9 @@ let markdownContent = ref('');
 // file picker
 async function getFileHandle() {
   fileHandle = await window.showDirectoryPicker()
+  workspaceList.value.push(fileHandle);
+  saveHandle(fileHandle);
+  console.log(fileHandle);
   for await (const handle of fileHandle.values()) {
     if (handle.kind === 'directory') {
       continue
@@ -94,13 +99,75 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 async function handleScroll() {
   console.log('scroll');
 }
+function preference() {
+
+}
+
+
+const dbName = 'xzfilehandle'
+      let db
+      function openDB() {
+        const req = indexedDB.open(dbName, 1)
+        req.onupgradeneeded = (ev) => {
+          req.result.createObjectStore('handle', {
+            keyPath: 'id',
+          })
+        }
+        req.onsuccess = (ev) => {
+          db = req.result
+          restoreHandle(db)
+        }
+      }
+      openDB()
+
+      function saveHandle(handle) {
+        const transaction = db
+          .transaction('handle', 'readwrite')
+          .objectStore('handle')
+        transaction.add({
+          id: '111',
+          handle: handle,
+        })
+        console.log('已保存 handle')
+      }
+
+      function restoreHandle(db) {
+        const req = db
+          .transaction('handle', 'readwrite')
+          .objectStore('handle')
+          .get('111')
+
+        req.onsuccess = (ev) => {
+          const data = req.result
+          if (data) {
+            console.log('已读取保存的 handle')
+            checkPermission(data.handle)
+          }
+        }
+      }
+      async function checkPermission(fileHandle) {
+        const query = await fileHandle.queryPermission({})
+        console.log('query', query)
+        if (query !== 'granted') {
+          const b = document.querySelector('#b')
+          b.onclick = async () => {
+            const request = await fileHandle.requestPermission({})
+            console.log('request', request)
+
+            //sendFile(fileHandle, '22222,22222')
+          }
+        }
+      }
 </script>
 
 <template>
   <main>
     <div class="sidebar">
-      <div class="form-group">
-        <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+      <div class="top-group">
+        <div class="workspace-item" v-for="item in workspaceList" @click=''>{{ item.name }}</div>
+      </div>
+      <div class="bottom-group">
+        <div @click="() => {showPreference = true}">设置</div>
       </div>
     </div>
     <div class="nav" @scroll="handleScroll">
@@ -109,7 +176,13 @@ async function handleScroll() {
     <div class="content">
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" />
     </div>
+
   </main>
+  <div class="preference " v-if="showPreference">
+    <div class="videoMenu" @click="() => {showPreference = false}">&times;</div>
+      选择文件夹
+      <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+    </div>
 </template>
 
 <style scoped lang="scss">
@@ -135,13 +208,35 @@ main {
     flex: 1;
     //background-color: #f5f7f9;
   }
+
 }
-.form-group {
+.top-group {
+  position: absolute;
+  top: 0px;
+}
+.bottom-group {
   position: absolute;
   bottom: 0px;
 }
 .item {
   border: solid;
   height: 50px;
+}
+
+.preference {
+  display: block;
+  width: 100%;
+    position: fixed;
+    z-index: 100px;
+    //right: 0px;
+    top: 0px;
+    bottom: 0px;
+    margin: 0 0 0 50px;
+    border: solid red;
+  }
+  .videoMenu {
+  width: 700px;
+  height: 30px;
+
 }
 </style>

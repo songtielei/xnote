@@ -125,7 +125,7 @@ export default {
     },
     watch: {
         value(val) {
-            console.log(val);
+            //console.log(val);
             this.setMarkdown(val, true);
         }
     },
@@ -269,7 +269,7 @@ export default {
                 mdId
             } = this;
             //console.log(hello);
-            console.log(this.value);
+            //console.log(this.value);
             const defaultValue = value || this.value;
             cherryInstance = new Cherry({
                 id: mdId,
