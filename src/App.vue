@@ -167,14 +167,18 @@ function saveHandle(handle) {
 }
 
 function restoreHandle(db) {
-  const req = db.transaction('handle', 'readwrite').objectStore('handle').get('111')
+  const req = db.transaction('handle', 'readwrite').objectStore('handle').openCursor();
 
-  req.onsuccess = (ev) => {
-    const data = req.result
-    if (data) {
-      console.log('已读取保存的 handle')
-      workspaceList.value.push(data.handle);
-    }
+  req.onsuccess = (event) => {
+    const cursor = event.target.result;
+  if (cursor) {
+    console.log(cursor.key);
+    workspaceList.value.push(cursor.value.handle);
+    cursor.continue();
+  } else {
+    console.log("没有更多记录了！");
+  }
+
   }
 }
 async function checkPermission(fileHandle) {
