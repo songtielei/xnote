@@ -163,24 +163,25 @@ openDB()
 function saveHandle(handle) {
   const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
   transaction.add({
-    id: '111',
-    handle: handle
+    id: new Date().getTime(),
+    file: handle
   })
   console.log('已保存 handle')
 }
 
 function restoreHandle(db) {
-  const req = db.transaction('handle', 'readwrite').objectStore('handle').openCursor();
+  const req = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
 
   req.onsuccess = (event) => {
     const cursor = event.target.result;
   if (cursor) {
     console.log(cursor.key);
-    workspaceList.value.push(cursor.value.handle);
+    workspaceList.value.push(cursor.value.file);
     cursor.continue();
   } else {
     console.log("没有更多记录了！");
   }
+  console.log(workspaceList.value.length);
 
   }
 }
