@@ -56,7 +56,6 @@ async function getFileHandle() {
   workspaceList.value.push(fileHandle)
   contentList.value.length = 0
   saveHandle(fileHandle)
-  console.log(fileHandle)
   for await (const handle of fileHandle.values()) {
     if (handle.kind === 'directory') {
       continue
@@ -64,14 +63,12 @@ async function getFileHandle() {
     const file = await handle.getFile()
     if (file !== null && !file.name.startsWith('.')) {
       const text = await file.text()
-      //console.log(file.lastModified)
       contentList.value.push({
         content: text.substring(0, 20),
         dateTime: handle.lastModified,
         handle: handle
       })
       if (!isLoad) {
-        //console.log(CherryMarkdown)
         markdownContent.value = text
         isLoad = true
       }
@@ -84,7 +81,6 @@ async function content(handle) {
   const file = await handle.getFile()
   const text = await file.text()
 
-  //console.log(text);
   markdownContent.value = text
 }
 
@@ -103,19 +99,15 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 //       marked.parse('# Marked in the browser\n\nRendered by **marked**.');
 
 async function handleScroll() {
-  console.log('scroll')
+
 }
 function preference() {}
 
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  console.log(handle)
-  //const request = await handle.requestPermission({})
+
   const query = await handle.queryPermission({})
-  console.log('query', query)
-  // const request = await handle.requestPermission({})
   if (query !== 'granted') {
     const request = await handle.requestPermission({})
-    console.log('request', request)
 
   }
   contentList.value.length = 0
@@ -125,17 +117,14 @@ for await (const h of handle.values()) {
     continue
   }
   const file = await h.getFile()
-  console.log(file);
   if (file !== null && !file.name.startsWith('.')) {
     const text = await file.text()
-    //console.log(file.lastModified)
     contentList.value.push({
       content: text.substring(0, 20),
       dateTime: h.lastModified,
       handle: h
     })
     if (!isLoad) {
-      //console.log(CherryMarkdown)
       markdownContent.value = text
       isLoad = true
     }
@@ -166,7 +155,6 @@ function saveHandle(handle) {
     id: new Date().getTime(),
     file: handle
   })
-  console.log('已保存 handle')
 }
 
 function restoreHandle(db) {
@@ -175,26 +163,21 @@ function restoreHandle(db) {
   req.onsuccess = (event) => {
     const cursor = event.target.result;
   if (cursor) {
-    console.log(cursor.key);
     workspaceList.value.push(cursor.value.file);
     cursor.continue();
   } else {
     console.log("没有更多记录了！");
   }
-  console.log(workspaceList.value.length);
 
   }
 }
 async function checkPermission(fileHandle) {
   const query = await fileHandle.queryPermission({})
-  console.log('query', query)
   workspaceList.value.push(fileHandle);
 
 }
 
 function mdChange(mdHtml, mdTxt, mdContent) {
-  console.log(mdHtml);
-  console.log(mdContent);
   currentContent = mdContent;
 }
 
@@ -229,7 +212,7 @@ function saveContent() {
       </div>
     </div>
     <div class="content">
-      <div class="contentHeader" style="width: 100%; height: 50px; border: solid;">
+      <div class="contentHeader" style="position: fixed; top: 0px; width: 100%; height: 50px; border: solid;">
       <button @click="saveContent">保存</button>
       </div>
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange"/>
@@ -272,6 +255,7 @@ main {
 
   > .content {
     flex: 1;
+    padding-top: 50px;
     //background-color: #f5f7f9;
   }
 }

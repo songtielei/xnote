@@ -268,8 +268,6 @@ export default {
                 fileUpload,
                 mdId
             } = this;
-            //console.log(hello);
-            //console.log(this.value);
             const defaultValue = value || this.value;
             cherryInstance = new Cherry({
                 id: mdId,
@@ -409,7 +407,6 @@ export default {
         },
 
         insert(content, isSelect = false, anchor = [], focus = true) {
-            console.log(content)
             cherryInstance.insert(content, isSelect, anchor, focus)
         },
 
