@@ -9,6 +9,8 @@ import CherryMarkdown from './components/CherryMarkdown.vue'
 let showPreference = ref(false)
 const contentList = ref<any>([])
 const workspaceList = ref<any>([])
+let currentFile
+let currentContent;
 
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
@@ -78,6 +80,7 @@ async function getFileHandle() {
   isLoad = false
 }
 async function content(handle) {
+  currentFile = handle;
   const file = await handle.getFile()
   const text = await file.text()
 
@@ -187,6 +190,16 @@ async function checkPermission(fileHandle) {
   workspaceList.value.push(fileHandle);
 
 }
+
+function mdChange(mdHtml, mdTxt, mdContent) {
+  console.log(mdHtml);
+  console.log(mdContent);
+  currentContent = mdContent;
+}
+
+function saveContent() {
+  writeFile(currentFile, currentContent);
+}
 </script>
 
 <template>
@@ -215,7 +228,10 @@ async function checkPermission(fileHandle) {
       </div>
     </div>
     <div class="content">
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" />
+      <div class="contentHeader" style="width: 100%; height: 50px; border: solid;">
+      <button @click="saveContent">保存</button>
+      </div>
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange"/>
     </div>
   </main>
   <div class="preference" v-if="showPreference">

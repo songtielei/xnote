@@ -349,7 +349,7 @@ export default {
             const mdContent = this.getCherryContent()
             this.$emit('input', mdContent)
             //console.log('input:', mdHtml)
-            this.$emit('md-change', mdHtml, mdTxt, mdContent)
+            this.$emit('mdChange', mdHtml, mdTxt, mdContent)
             //console.log('md-change:', mdHtml, mdTxt, mdContent)
         },
 
