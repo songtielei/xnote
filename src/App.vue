@@ -104,7 +104,7 @@ async function handleScroll() {
 function preference() {}
 
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-
+  fileHandle = handle;
   const query = await handle.queryPermission({})
   if (query !== 'granted') {
     const request = await handle.requestPermission({})
@@ -184,6 +184,16 @@ function mdChange(mdHtml, mdTxt, mdContent) {
 function saveContent() {
   writeFile(currentFile, currentContent);
 }
+
+async function newFile() {
+  const draftHandle = await fileHandle.getFileHandle("draft.txt", { create: true });
+  contentList.value.push({
+      content: '',
+      dateTime: new Date(),
+      handle: draftHandle,
+    })
+}
+
 </script>
 
 <template>
@@ -207,6 +217,7 @@ function saveContent() {
       </div>
     </div>
     <div class="nav" @scroll="handleScroll">
+      <div><input /><button @click="newFile">新建</button></div>
       <div class="item" v-for="item in contentList" @click="content(item.handle)">
         {{ item.dateTime }} {{ item.content }}
       </div>
