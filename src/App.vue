@@ -5,10 +5,11 @@ import { ref, reactive, shallowRef } from 'vue'
 import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
+import Appearance from './components/Appearance.vue'
 
-let showPreference = ref(false)
+let showPreference = ref(true)
 const contentList = ref<any>([])
-const workspaceList = ref<any>([])
+
 let currentFile
 let currentContent;
 
@@ -44,38 +45,13 @@ let currentContent;
 //   const file = await fileHandle.getFile();
 // console.log(await file.text());
 
-let fileHandle: FileSystemDirectoryHandle
+
 let contents
 let file
 let isLoad = false
 let markdownContent = ref('')
 
-// file picker
-async function getFileHandle() {
-  fileHandle = await window.showDirectoryPicker()
-  workspaceList.value.push(fileHandle)
-  contentList.value.length = 0
-  saveHandle(fileHandle)
-  for await (const handle of fileHandle.values()) {
-    if (handle.kind === 'directory') {
-      continue
-    }
-    const file = await handle.getFile()
-    if (file !== null && !file.name.startsWith('.')) {
-      const text = await file.text()
-      contentList.value.push({
-        content: text.substring(0, 20),
-        dateTime: handle.lastModified,
-        handle: handle
-      })
-      if (!isLoad) {
-        markdownContent.value = text
-        isLoad = true
-      }
-    }
-  }
-  isLoad = false
-}
+
 async function content(handle) {
   currentFile = handle;
   const file = await handle.getFile()
@@ -101,8 +77,8 @@ const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 async function handleScroll() {
 
 }
-function preference() {}
-
+function preference() { }
+let fileHandle: FileSystemDirectoryHandle
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   fileHandle = handle;
   const query = await handle.queryPermission({})
@@ -112,65 +88,32 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   contentList.value.length = 0
 
-for await (const h of handle.values()) {
-  if (h.kind === 'directory') {
-    continue
-  }
-  const file = await h.getFile()
-  if (file !== null && !file.name.startsWith('.')) {
-    const text = await file.text()
-    contentList.value.push({
-      content: text.substring(0, 20),
-      dateTime: h.lastModified,
-      handle: h
-    })
-    if (!isLoad) {
-      markdownContent.value = text
-      isLoad = true
+  for await (const h of handle.values()) {
+    if (h.kind === 'directory') {
+      continue
+    }
+    const file = await h.getFile()
+    if (file !== null && !file.name.startsWith('.')) {
+      const text = await file.text()
+      contentList.value.push({
+        content: text.substring(0, 20),
+        dateTime: h.lastModified,
+        handle: h
+      })
+      if (!isLoad) {
+        markdownContent.value = text
+        isLoad = true
+      }
     }
   }
-}
-isLoad = false
-}
-
-const dbName = 'xzfilehandle'
-let db
-function openDB() {
-  const req = indexedDB.open(dbName, 1)
-  req.onupgradeneeded = (ev) => {
-    req.result.createObjectStore('handle', {
-      keyPath: 'id'
-    })
-  }
-  req.onsuccess = (ev) => {
-    db = req.result
-    restoreHandle(db)
-  }
-}
-openDB()
-
-function saveHandle(handle) {
-  const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
-  transaction.add({
-    id: new Date().getTime(),
-    file: handle
-  })
+  isLoad = false
 }
 
-function restoreHandle(db) {
-  const req = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
 
-  req.onsuccess = (event) => {
-    const cursor = event.target.result;
-  if (cursor) {
-    workspaceList.value.push(cursor.value.file);
-    cursor.continue();
-  } else {
-    console.log("没有更多记录了！");
-  }
 
-  }
-}
+
+
+
 async function checkPermission(fileHandle) {
   const query = await fileHandle.queryPermission({})
   workspaceList.value.push(fileHandle);
@@ -188,11 +131,41 @@ function saveContent() {
 async function newFile() {
   const draftHandle = await fileHandle.getFileHandle("draft.txt", { create: true });
   contentList.value.push({
-      content: '',
-      dateTime: new Date(),
-      handle: draftHandle,
-    })
+    content: '',
+    dateTime: new Date(),
+    handle: draftHandle,
+  })
 }
+// 进入页面时检测是否有默认的文件夹
+const dbName = 'xzfilehandle'
+let db
+const req = indexedDB.open(dbName, 1)
+let reqq;
+let curr = ref();
+req.onsuccess = (ev) => {
+  db = req.result
+  reqq = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
+  reqq.onsuccess = (event) => {
+    const cursor = event.target.result;
+    if (cursor) {
+      console.log(cursor.value.current)
+      if (cursor.value.current) {
+        showPreference.value = false;
+        curr.value = cursor.value.file;
+      }
+      cursor.continue();
+    } else {
+      console.log('没有默认文件夹');
+    }
+
+  }
+
+}
+
+// let curr;
+
+// 如果没有则打开设置页面 新建或选择文件夹
+// 如果有则进入首页
 
 </script>
 
@@ -200,18 +173,21 @@ async function newFile() {
   <main>
     <div class="sidebar">
       <div class="top-group">
-        <div class="workspace-item" v-for="item in workspaceList" @click="displayWorkspace(item)">
-          {{ item.name }}
+        <div class="workspace-item" @click="displayWorkspace(curr)">
+          {{ curr?.name }}
         </div>
+        <div class="account">
+          <img src="src/assets/avatar.png" />
+        </div>
+        <div>笔记</div>
+        <div>标签</div>
+        <div>文件</div>
       </div>
       <div class="bottom-group">
-        <div
-          @click="
-            () => {
-              showPreference = true
-            }
-          "
-        >
+        <div @click="() => {
+            showPreference = true
+          }
+          ">
           设置
         </div>
       </div>
@@ -224,78 +200,98 @@ async function newFile() {
     </div>
     <div class="content">
       <div class="contentHeader" style="position: fixed; top: 0px; width: 100%; height: 50px; border: solid;">
-      <button @click="saveContent">保存</button>
+        <button @click="saveContent">保存</button>
       </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange"/>
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" />
     </div>
   </main>
   <div class="preference" v-if="showPreference">
-    <div
-      class="videoMenu"
-      @click="
-        () => {
-          showPreference = false
-        }
-      "
-    >
+    <div class="videoMenu" @click="() => {
+        showPreference = false
+      }
+      ">
       &times;
     </div>
-    选择文件夹
-    <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+    <Appearance />
+
   </div>
+  <div class="overlay" v-if="showPreference"></div>
 </template>
 
 <style scoped lang="scss">
 main {
-  width: 100%;
   height: 100%;
-  margin: 0;
   display: flex;
-  border: solid;
+  border: solid 0px;
 
-  > .sidebar {
+  >.sidebar {
     width: 50px;
+
     //background-color: white;
+    >.top-group {
+      >.account {
+        border-radius: 30px;
+        background-color: black;
+        overflow: hidden;
+      }
+    }
   }
-  > .nav {
+
+  >.nav {
     border: solid;
     width: 300px;
-    overflow: scroll;
+    overflow: auto;
     //background-color: white;
   }
 
-  > .content {
+  >.content {
     flex: 1;
     padding-top: 50px;
     //background-color: #f5f7f9;
   }
 }
+
 .top-group {
   position: absolute;
   top: 0px;
 }
+
 .bottom-group {
   position: absolute;
   bottom: 0px;
 }
+
 .item {
   border: solid;
   height: 50px;
 }
 
 .preference {
-  display: block;
-  width: 100%;
+  position: absolute;
+  width: 500px;
+  height: 300px;
   position: fixed;
-  z-index: 100px;
-  //right: 0px;
+  z-index: 101;
   top: 0px;
+  right: 0px;
   bottom: 0px;
-  margin: 0 0 0 50px;
-  border: solid red;
+  left: 0px;
+  margin: auto;
+  //border: solid red;
+  background: white
 }
+
 .videoMenu {
-  width: 700px;
   height: 30px;
+}
+
+.overlay {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
 }
 </style>
