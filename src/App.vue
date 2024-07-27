@@ -129,7 +129,7 @@ function saveContent() {
 }
 
 async function newFile() {
-  const draftHandle = await fileHandle.getFileHandle("draft.txt", { create: true });
+  const draftHandle = await fileHandle.getFileHandle(new Date(), { create: true });
   contentList.value.push({
     content: '',
     dateTime: new Date(),
@@ -173,9 +173,7 @@ req.onsuccess = (ev) => {
   <main>
     <div class="sidebar">
       <div class="top-group">
-        <div class="workspace-item" @click="displayWorkspace(curr)">
-          {{ curr?.name }}
-        </div>
+
         <div class="account">
           <img src="src/assets/avatar.png" />
         </div>
@@ -193,6 +191,9 @@ req.onsuccess = (ev) => {
       </div>
     </div>
     <div class="nav" @scroll="handleScroll">
+      <div class="workspace-item" @click="displayWorkspace(curr)">
+          {{ curr?.name }}
+        </div>
       <div><input /><button @click="newFile">新建</button></div>
       <div class="item" v-for="item in contentList" @click="content(item.handle)">
         {{ item.dateTime }} {{ item.content }}
