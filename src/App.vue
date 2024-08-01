@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { ref, reactive, shallowRef } from 'vue'
+import { ref, reactive, shallowRef, onMounted } from 'vue'
 import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
 import Appearance from './components/Appearance.vue'
+import { parse, stringify } from './utils/front_matter'
 
 let showPreference = ref(true)
 const contentList = ref<any>([])
 
-let currentFile
-let currentContent;
+let currentFileItem;
+
 
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
@@ -46,18 +47,13 @@ let currentContent;
 // console.log(await file.text());
 
 
-let contents
-let file
-let isLoad = false
 let markdownContent = ref('')
 
 
-async function content(handle) {
-  currentFile = handle;
-  const file = await handle.getFile()
-  const text = await file.text()
+async function content(fileItem) {
+  currentFileItem = fileItem;
 
-  markdownContent.value = text
+  markdownContent.value = currentFileItem.parsedMarkdown._content
 }
 
 // write file
@@ -70,17 +66,21 @@ async function writeFile(fileHandle, contents) {
   await writable.close()
 }
 
-const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
-// document.getElementById('content').innerHTML =
-//       marked.parse('# Marked in the browser\n\nRendered by **marked**.');
 
 async function handleScroll() {
 
 }
-function preference() { }
-let fileHandle: FileSystemDirectoryHandle
+
+
+/**
+ * 显示工作区内容
+ *
+ * @param handle 文件系统目录句柄
+ * @returns 无返回值
+ */
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  fileHandle = handle;
+  let isLoad = false
+  let fileItem;
   const query = await handle.queryPermission({})
   if (query !== 'granted') {
     const request = await handle.requestPermission({})
@@ -95,13 +95,17 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
     const file = await h.getFile()
     if (file !== null && !file.name.startsWith('.')) {
       const text = await file.text()
-      contentList.value.push({
-        content: text.substring(0, 20),
-        dateTime: h.lastModified,
+      const parsedMarkdown = parse(text)
+      fileItem = {
+        summary: parsedMarkdown._content.substring(0, 20),
+        parsedMarkdown: parsedMarkdown,
         handle: h
-      })
+      }
+      contentList.value.push(fileItem)
       if (!isLoad) {
-        markdownContent.value = text
+        currentFileItem = fileItem
+        content(currentFileItem)
+        // markdownContent.value = parsedMarkdown._content
         isLoad = true
       }
     }
@@ -121,51 +125,58 @@ async function checkPermission(fileHandle) {
 }
 
 function mdChange(mdHtml, mdTxt, mdContent) {
-  currentContent = mdContent;
+  currentFileItem.parsedMarkdown._content = mdContent;
 }
 
 function saveContent() {
-  writeFile(currentFile, currentContent);
+  const fileHandle = currentFileItem.handle;
+  console.log(currentFileItem.parsedMarkdown._content)
+  const content = stringify(currentFileItem.parsedMarkdown, { mode: 'yaml', separator: '---', prefixSeparator: true });
+  console.log(content)
+  markdownContent.value = currentFileItem.parsedMarkdown._content;
+  writeFile(fileHandle, content);
 }
 
 async function newFile() {
   const draftHandle = await fileHandle.getFileHandle(new Date(), { create: true });
   contentList.value.push({
     content: '',
-    dateTime: new Date(),
+    date: new Date(),
     handle: draftHandle,
   })
 }
 // 进入页面时检测是否有默认的文件夹
-const dbName = 'xzfilehandle'
-let db
-const req = indexedDB.open(dbName, 1)
-let reqq;
-let curr = ref();
-req.onsuccess = (ev) => {
-  db = req.result
-  reqq = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
-  reqq.onsuccess = (event) => {
-    const cursor = event.target.result;
-    if (cursor) {
-      console.log(cursor.value.current)
-      if (cursor.value.current) {
-        showPreference.value = false;
-        curr.value = cursor.value.file;
-      }
-      cursor.continue();
-    } else {
-      console.log('没有默认文件夹');
-    }
-
-  }
-
-}
-
-// let curr;
-
 // 如果没有则打开设置页面 新建或选择文件夹
 // 如果有则进入首页
+
+let currentDir = ref();
+
+onMounted(async () => {
+  const dbName = 'xzfilehandle'
+  const req = indexedDB.open(dbName, 1);
+
+  req.onsuccess = (ev) => {
+    let db = req.result
+    let reqq = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
+
+    reqq.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        if (cursor.value.current) {
+          showPreference.value = false;
+          currentDir.value = cursor.value;
+          displayWorkspace(currentDir.value.file);
+        } else {
+          cursor.continue();
+        }
+
+      }
+
+    }
+
+  };
+
+})
 
 </script>
 
@@ -183,20 +194,20 @@ req.onsuccess = (ev) => {
       </div>
       <div class="bottom-group">
         <div @click="() => {
-            showPreference = true
-          }
+          showPreference = true
+        }
           ">
           设置
         </div>
       </div>
     </div>
     <div class="nav" @scroll="handleScroll">
-      <div class="workspace-item" @click="displayWorkspace(curr)">
-          {{ curr?.name }}
-        </div>
+      <div class="workspace-item" @click="displayWorkspace(currentDir.file)">
+        {{ currentDir?.file.name }}
+      </div>
       <div><input /><button @click="newFile">新建</button></div>
-      <div class="item" v-for="item in contentList" @click="content(item.handle)">
-        {{ item.dateTime }} {{ item.content }}
+      <div class="item" v-for="item in contentList" @click="content(item)">
+        {{ item.parsedMarkdown.date }} {{ item.summary }}
       </div>
     </div>
     <div class="content">
@@ -208,8 +219,8 @@ req.onsuccess = (ev) => {
   </main>
   <div class="preference" v-if="showPreference">
     <div class="videoMenu" @click="() => {
-        showPreference = false
-      }
+      showPreference = false
+    }
       ">
       &times;
     </div>

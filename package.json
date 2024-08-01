@@ -15,7 +15,9 @@
   "dependencies": {
     "@types/marked": "^5.0.1",
     "cherry-markdown": "^0.8.26",
+    "hexo-front-matter": "^4.2.1",
     "highlight.js": "^11.8.0",
+    "js-yaml": "^4.1.0",
     "marked": "^9.0.3",
     "normalize.css": "^8.0.1",
     "sass": "^1.66.1",
