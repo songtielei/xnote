@@ -96,7 +96,7 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
     if (file !== null && !file.name.startsWith('.')) {
       const text = await file.text()
       const parsedMarkdown = parse(text)
-      fileItem = {
+      const fileItem = {
         summary: parsedMarkdown._content.substring(0, 20),
         parsedMarkdown: parsedMarkdown,
         handle: h
@@ -130,20 +130,21 @@ function mdChange(mdHtml, mdTxt, mdContent) {
 
 function saveContent() {
   const fileHandle = currentFileItem.handle;
-  console.log(currentFileItem.parsedMarkdown._content)
+  const c = currentFileItem.parsedMarkdown._content
   const content = stringify(currentFileItem.parsedMarkdown, { mode: 'yaml', separator: '---', prefixSeparator: true });
-  console.log(content)
+  currentFileItem.parsedMarkdown._content = c
   markdownContent.value = currentFileItem.parsedMarkdown._content;
   writeFile(fileHandle, content);
 }
 
 async function newFile() {
   const draftHandle = await fileHandle.getFileHandle(new Date(), { create: true });
-  contentList.value.push({
-    content: '',
-    date: new Date(),
-    handle: draftHandle,
-  })
+  const item = {
+    summary: '',
+        parsedMarkdown: null,
+        handle: draftHandle
+  }
+  contentList.value.push(item)
 }
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
@@ -207,7 +208,7 @@ onMounted(async () => {
       </div>
       <div><input /><button @click="newFile">新建</button></div>
       <div class="item" v-for="item in contentList" @click="content(item)">
-        {{ item.parsedMarkdown.date }} {{ item.summary }}
+        {{ item.parsedMarkdown?.date }} {{ item.summary }}
       </div>
     </div>
     <div class="content">
