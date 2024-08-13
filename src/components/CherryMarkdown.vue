@@ -70,7 +70,7 @@
 }
 </style>
 <template>
-    <div @click.prevent.stop style="position: relative; width: 100%; height: 100%; z-index: 99;">
+    <div @click.prevent.stop style="position: relative; width: 100%; height: calc(100% - 45px); z-index: 99;">
 
         <!-- ------- markdown组件容器 --------- -->
         <div :ref="mdId" :id="mdId" class="cherry-container scroll" :style="{ 'left': toc_visiable ? '262px' : '0px' }"></div>

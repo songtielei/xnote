@@ -141,10 +141,14 @@ async function newFile() {
   const draftHandle = await fileHandle.getFileHandle(new Date(), { create: true });
   const item = {
     summary: '',
-        parsedMarkdown: null,
-        handle: draftHandle
+    parsedMarkdown: null,
+    handle: draftHandle
   }
   contentList.value.push(item)
+}
+function addTag(event) {
+  currentFileItem.parsedMarkdown.tags.push(event.target.value)
+  console.log(event.target.value)
 }
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
@@ -202,20 +206,32 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div class="nav" @scroll="handleScroll">
-      <div class="workspace-item" @click="displayWorkspace(currentDir.file)">
-        {{ currentDir?.file.name }}
+    <div class="nav" @scroll="handleScroll" style="padding-top: 50px;">
+      <div style="position: absolute; top: 0px; border-bottom: solid 1px; width: 300px; height: 50px;">
+        <div class="workspace-item" @click="displayWorkspace(currentDir.file)">
+          {{ currentDir?.file.name }}
+        </div>
+        <div><button @click="newFile">新建</button></div>
       </div>
-      <div><input /><button @click="newFile">新建</button></div>
-      <div class="item" v-for="item in contentList" @click="content(item)">
-        {{ item.parsedMarkdown?.date }} {{ item.summary }}
+      <div class="item-list">
+        <div class="item" v-for="item in contentList" @click="content(item)">
+          {{ item.parsedMarkdown?.date }} {{ item.summary }}
+        </div>
       </div>
+
+
     </div>
     <div class="content">
-      <div class="contentHeader" style="position: fixed; top: 0px; width: 100%; height: 50px; border: solid;">
-        <button @click="saveContent">保存</button>
+      <div class="contentHeader" style="position: relative; top: 0px; width: 100%; height: 44px; border-bottom: solid 1px;">
+        <input type="text" placeholder="标题" />
+        <ul style="display: inline-block; margin: 0px;">
+          <li style="display: inline-block; border: solid 1px; margin-right: 3px; padding: 2px 10px; border-radius: 5px;" v-for="tag in currentFileItem?.parsedMarkdown?.tags">{{ tag }}</li>
+        </ul>
+        <input style="height: 20px;" type="text" placeholder="添加标签" @keyup.enter="addTag" />
+        <button @click="saveContent" style="float: right;">保存</button>
       </div>
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" />
+
     </div>
   </main>
   <div class="preference" v-if="showPreference">
@@ -251,15 +267,30 @@ main {
   }
 
   >.nav {
-    border: solid;
+    border-left: solid 1px;
+    border-right: solid 1px;
     width: 300px;
-    overflow: auto;
+    overflow: hidden;
+
     //background-color: white;
+
+    .item-list {
+      height: 100%;
+      overflow: auto;
+      
+
+      .item {
+        border-bottom: solid 1px;
+        border-right: solid 1px;
+        height: 50px;
+      }
+    }
+
   }
 
   >.content {
     flex: 1;
-    padding-top: 50px;
+    //padding-top: 50px;
     //background-color: #f5f7f9;
   }
 }
@@ -274,10 +305,7 @@ main {
   bottom: 0px;
 }
 
-.item {
-  border: solid;
-  height: 50px;
-}
+
 
 .preference {
   position: absolute;
