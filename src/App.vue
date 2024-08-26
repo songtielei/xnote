@@ -240,20 +240,71 @@ onMounted(async () => {
 
     </div>
   </main>
-  <div class="preference" v-if="showPreference">
-    <div class="videoMenu" @click="() => {
-      showPreference = false
-    }
-      ">
-      &times;
-    </div>
-    <Appearance />
 
+  <div class="modal" v-if="showPreference">
+    <div class="modal-backdrop"></div>
+    <div class="modal-body">
+      <div class="modal-head">
+        <button class="modal-close" @click="() => { showPreference = false}">close</button>
+      </div>
+      
+      <Appearance />
+    </div>
   </div>
-  <div class="overlay" v-if="showPreference"></div>
 </template>
 
 <style scoped lang="scss">
+.modal {
+  //display: block;
+  z-index: 100;
+}
+.modal-backdrop {
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.modal-body {
+  z-index: 101;
+  position: fixed;
+  top: 3em;
+  bottom: 3em;
+  right: 20%;
+  left: 20%;
+  padding: 2em, 3em;
+  background-color: white;
+  overflow: auto;
+  border-radius: 5px;
+}
+.modal-close {
+  cursor: pointer;
+  position: absolute;
+  top: 0.3em;
+  right: 0.3em;
+  padding: 0.3em;
+  font-size: 2em;
+  height: 1em;
+  width: 1em;
+  text-indent: 10em;
+  overflow: hidden;
+  border: 0;
+
+}
+.modal-close::after {
+  position: absolute;
+  line-height: 0.5;
+  top: 0.3em;
+  left: 0.2em;
+  text-indent: 0;
+  content: "\00D7"
+}
+.modal-head {
+  height: 40px;
+}
+
 main {
   height: 100%;
   display: flex;
@@ -312,33 +363,4 @@ main {
 }
 
 
-
-.preference {
-  position: absolute;
-  width: 500px;
-  height: 300px;
-  position: fixed;
-  z-index: 101;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
-  margin: auto;
-  //border: solid red;
-  background: white
-}
-
-.videoMenu {
-  height: 30px;
-}
-
-.overlay {
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-}
 </style>

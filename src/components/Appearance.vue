@@ -170,7 +170,7 @@ openDB()
 <style scoped lang="scss">
 .container {
   display: flex;
-  height: calc(100% - 30px);
+  height: calc(100% - 40px);
   border-radius: 5px;
 
   .sidebar {
