@@ -56,7 +56,12 @@ let markdownContent = ref('')
 
 async function content(fileItem) {
   currentFileItem = fileItem;
-  tags.value = currentFileItem.parsedMarkdown.tags
+  if (!currentFileItem.parsedMarkdown.tags) {
+    tags.value = []
+  } else {
+    tags.value = currentFileItem.parsedMarkdown.tags
+  }
+  
   title.value = currentFileItem.parsedMarkdown.title
   markdownContent.value = currentFileItem.parsedMarkdown._content
 }
@@ -155,7 +160,9 @@ async function newFile() {
 }
 function addTag(event) {
   tags.value.push(event.target.value)
+  event.target.value = ''
 }
+
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
 // 如果有则进入首页
@@ -228,12 +235,12 @@ onMounted(async () => {
 
     </div>
     <div class="content">
-      <div class="contentHeader" style="position: relative; top: 0px; width: 100%; height: 44px; border-bottom: solid 1px;">
-        <input type="text" placeholder="标题"  style="width: 300px; height: 20px;" v-model="title"/>
-        <ul style="display: inline-block; margin: 0px;">
-          <li style="display: inline-block; border: solid 1px; margin-right: 3px; padding: 2px 10px; border-radius: 5px;" v-for="tag in tags">{{ tag }}</li>
+      <div class="contentHeader">
+        <input class="title" type="text" placeholder="标题" v-model="title"/>
+        <ul class="tag">
+          <li v-for="tag in tags">{{ tag }}</li>
         </ul>
-        <input style="height: 20px;" type="text" placeholder="添加标签" @keyup.enter="addTag" />
+        <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
         <button @click="saveContent" style="float: right;">保存</button>
       </div>
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" />
@@ -257,53 +264,54 @@ onMounted(async () => {
 .modal {
   //display: block;
   z-index: 100;
-}
-.modal-backdrop {
-  z-index: 100;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-.modal-body {
-  z-index: 101;
-  position: fixed;
-  top: 3em;
-  bottom: 3em;
-  right: 20%;
-  left: 20%;
-  padding: 2em, 3em;
-  background-color: white;
-  overflow: auto;
-  border-radius: 5px;
-}
-.modal-close {
-  cursor: pointer;
-  position: absolute;
-  top: 0.3em;
-  right: 0.3em;
-  padding: 0.3em;
-  font-size: 2em;
-  height: 1em;
-  width: 1em;
-  text-indent: 10em;
-  overflow: hidden;
-  border: 0;
+  .modal-backdrop {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  .modal-body {
+    z-index: 101;
+    position: fixed;
+    top: 3em;
+    bottom: 3em;
+    right: 20%;
+    left: 20%;
+    padding: 2em, 3em;
+    background-color: white;
+    overflow: auto;
+    border-radius: 5px;
+    .modal-head {
+      height: 40px;
+      .modal-close {
+        cursor: pointer;
+        position: absolute;
+        top: 0.3em;
+        right: 0.3em;
+        padding: 0.3em;
+        font-size: 2em;
+        height: 1em;
+        width: 1em;
+        text-indent: 10em;
+        overflow: hidden;
+        border: 0;
 
+      }
+      .modal-close::after {
+        position: absolute;
+        line-height: 0.5;
+        top: 0.3em;
+        left: 0.2em;
+        text-indent: 0;
+        content: "\00D7"
+      }
+    }
+  }
 }
-.modal-close::after {
-  position: absolute;
-  line-height: 0.5;
-  top: 0.3em;
-  left: 0.2em;
-  text-indent: 0;
-  content: "\00D7"
-}
-.modal-head {
-  height: 40px;
-}
+
 
 main {
   height: 100%;
@@ -315,11 +323,17 @@ main {
 
     //background-color: white;
     >.top-group {
+      position: absolute;
+      top: 0px;
       >.account {
         border-radius: 30px;
         background-color: black;
         overflow: hidden;
       }
+    }
+    >.bottom-group {
+      position: absolute;
+      bottom: 0px;
     }
   }
 
@@ -349,18 +363,34 @@ main {
     flex: 1;
     //padding-top: 50px;
     //background-color: #f5f7f9;
+    .contentHeader {
+      //position: relative; 
+      //top: 0px; 
+      //width: 100%; 
+      height: 44px; 
+      border-bottom: solid 1px;
+      >.title {
+        width: 300px; 
+        height: 20px;
+      }
+      >.tag {
+        display: inline-block; 
+        margin: 0px;
+        >li {
+          display: inline-block; 
+          border: solid 1px; 
+          margin-right: 3px; 
+          padding: 2px 10px; 
+          border-radius: 5px;
+        }
+      }
+      >.addTag {
+        height: 20px;
+      }
+    }
   }
 }
 
-.top-group {
-  position: absolute;
-  top: 0px;
-}
-
-.bottom-group {
-  position: absolute;
-  bottom: 0px;
-}
 
 
 </style>
