@@ -9,15 +9,6 @@ import Appearance from './components/Appearance.vue'
 import { parse, stringify } from './utils/front_matter'
 import moment from 'moment';
 
-
-let showPreference = ref(true)
-const contentList = ref<any>([])
-
-let currentFileItem;
-let tags = ref<any>([])
-let title = ref('')
-
-
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
 // console.log(opfsRoot);
@@ -51,7 +42,13 @@ let title = ref('')
 // console.log(await file.text());
 
 
-let markdownContent = ref('')
+let showPreference = ref(true)
+const contentList = ref<any>([])
+
+let currentFileItem;
+let tags = ref<any>([])
+let title = ref<string>('')
+let markdownContent = ref<string>('')
 
 
 async function content(fileItem) {
@@ -122,11 +119,6 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   isLoad = false
 }
-
-
-
-
-
 
 async function checkPermission(fileHandle) {
   const query = await fileHandle.queryPermission({})
