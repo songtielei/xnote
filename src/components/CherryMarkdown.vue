@@ -105,7 +105,7 @@ export default {
         // markdown文本
         value: {
             type: String,
-            default: '## hello'
+            default: ''
         },
         // markdown组件容器ID
         mdId: {

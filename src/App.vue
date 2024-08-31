@@ -109,15 +109,24 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
         handle: h
       }
       contentList.value.push(fileItem)
-      if (!isLoad) {
-        currentFileItem = fileItem
-        content(currentFileItem)
-        // markdownContent.value = parsedMarkdown._content
-        isLoad = true
-      }
+
     }
   }
-  isLoad = false
+  if (contentList.value.length > 0) {
+    contentList.value.sort((a, b) => {
+      // 按照修改时间排序 修改时间晚的排前面
+      if(!b.parsedMarkdown.updated) {
+        return 1;
+      }
+      if (!a.parsedMarkdown.updated) {
+        return 1;
+      }
+      return new Date(b.parsedMarkdown.updated).getTime() - new Date(a.parsedMarkdown.updated).getTime();
+    })
+  }
+  currentFileItem = contentList.value[0]
+  content(currentFileItem)
+
 }
 
 async function checkPermission(fileHandle) {
@@ -135,6 +144,10 @@ function saveContent() {
   const c = currentFileItem.parsedMarkdown._content
   currentFileItem.parsedMarkdown.tags = tags.value
   currentFileItem.parsedMarkdown.title = title.value
+  if (!currentFileItem.parsedMarkdown.date) {
+    currentFileItem.parsedMarkdown.date = new Date()
+  }
+  currentFileItem.parsedMarkdown.updated = new Date()
   const content = stringify(currentFileItem.parsedMarkdown, { mode: 'yaml', separator: '---', prefixSeparator: true });
   currentFileItem.parsedMarkdown._content = c
   markdownContent.value = currentFileItem.parsedMarkdown._content;
@@ -142,13 +155,22 @@ function saveContent() {
 }
 
 async function newFile() {
-  const draftHandle = await fileHandle.getFileHandle(new Date(), { create: true });
+  const fileName = new Date().getTime() + '.md';
+  console.log(fileName)
+  const draftHandle = await currentDir.value.file.getFileHandle(fileName, { create: true });
   const item = {
     summary: '',
-    parsedMarkdown: null,
+    parsedMarkdown: {},
     handle: draftHandle
   }
-  contentList.value.push(item)
+  
+  currentFileItem = item
+  tags.value = []
+  title.value = ''
+  saveContent()
+  contentList.value.unshift(item)
+
+  content(item)
 }
 function addTag(event) {
   tags.value.push(event.target.value)
