@@ -234,15 +234,17 @@ onMounted(async () => {
       </div>
     </div>
     <div class="nav" @scroll="handleScroll" style="padding-top: 50px;">
-      <div style="position: absolute; top: 0px; border-bottom: solid 1px; width: 300px; height: 50px;">
-        <div class="workspace-item" @click="displayWorkspace(currentDir.file)">
+      <div style="display: flex; position: absolute; top: 0px; border-bottom: solid 1px; width: 300px; height: 44px; padding: 5px 7px;">
+        <div class="workspace-item" @click="displayWorkspace(currentDir.file)" style="flex: 1">
           {{ currentDir?.file.name }}
         </div>
-        <div><button @click="newFile">新建</button></div>
+        <div style="margin-left: auto; flex: 10px;"><button @click="newFile">新建</button></div>
       </div>
       <div class="item-list">
         <div class="item" v-for="item in contentList" @click="content(item)">
-          {{ moment(item.parsedMarkdown?.date).format('YYYY-MM-DD HH:mm:ss') }} <br /> {{ item.summary }}
+          <div class="title">{{ item.parsedMarkdown?.title }}</div>
+          <div class="summary">{{ item.summary }}</div>
+          <div class="date">{{ moment(item.parsedMarkdown?.date).format('YYYY-MM-DD') }}</div>
         </div>
       </div>
 
@@ -367,7 +369,20 @@ main {
       .item {
         border-bottom: solid 1px;
         border-right: solid 1px;
-        height: 90px;
+        height: 70px;
+        padding: 5px 10px;
+        .title {
+          font-size: 14px;
+          height: 25%;
+        }
+        .summary {
+          font-size: 12px;
+          height: 60%;
+        }
+        .date {
+          font-size: 12px;
+          height: 15%;
+        }
       }
     }
 
