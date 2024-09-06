@@ -233,12 +233,12 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div class="nav" @scroll="handleScroll" style="padding-top: 50px;">
-      <div style="display: flex; position: absolute; top: 0px; border-bottom: solid 1px; width: 300px; height: 44px; padding: 5px 7px;">
-        <div class="workspace-item" @click="displayWorkspace(currentDir.file)" style="flex: 1">
+    <div class="nav" @scroll="handleScroll">
+      <div class="nav-head">
+        <span class="workspace-item" @click="displayWorkspace(currentDir.file)">
           {{ currentDir?.file.name }}
-        </div>
-        <div style="margin-left: auto; flex: 10px;"><button @click="newFile">新建</button></div>
+        </span>
+        <button @click="newFile">新建</button>
       </div>
       <div class="item-list">
         <div class="item" v-for="item in contentList" @click="content(item)">
@@ -257,7 +257,7 @@ onMounted(async () => {
           <li v-for="tag in tags">{{ tag }}</li>
         </ul>
         <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
-        <button @click="saveContent" style="float: right;">保存</button>
+        <button class="save" @click="saveContent">保存</button>
       </div>
       <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" />
 
@@ -362,6 +362,20 @@ main {
 
     //background-color: white;
 
+    >.nav-head {
+      display: flex; 
+      align-items: center;
+      border-bottom: solid 1px; 
+      height: 30px; 
+      padding: 0.2em 0.5em;
+      >span {
+        flex: 1;
+      }
+      >button {
+        width: 70px;
+      }
+
+    }
     .item-list {
       height: 100%;
       overflow: auto;
@@ -397,25 +411,35 @@ main {
       //position: relative; 
       //top: 0px; 
       //width: 100%; 
-      height: 44px; 
-      border-bottom: solid 1px;
+      display: flex; 
+      align-items: center;
+      border-bottom: solid 1px; 
+      height: 30px; 
+      padding: 0.2em 0.5em;
+
       >.title {
         width: 300px; 
         height: 20px;
       }
       >.tag {
+
         display: inline-block; 
         margin: 0px;
         >li {
           display: inline-block; 
           border: solid 1px; 
-          margin-right: 3px; 
-          padding: 2px 10px; 
-          border-radius: 5px;
+          margin-right: 3px;
+
+          padding: 0px 10px; 
+          border-radius: 3px;
         }
       }
       >.addTag {
+        width: 60px;
         height: 20px;
+      }
+      >.save {
+        margin-left: auto;
       }
     }
   }
