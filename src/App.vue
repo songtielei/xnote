@@ -292,21 +292,22 @@ onMounted(async () => {
   .modal-body {
     z-index: 101;
     position: fixed;
-    top: 3em;
-    bottom: 3em;
-    right: 20%;
-    left: 20%;
+    top: 10em;
+    bottom: 10em;
+    right: 30%;
+    left: 30%;
     padding: 2em, 3em;
     background-color: white;
     overflow: auto;
     border-radius: 5px;
     .modal-head {
-      height: 40px;
+      height: 39px;
+      border-bottom: 1px solid #000;
       .modal-close {
         cursor: pointer;
         position: absolute;
-        top: 0.3em;
-        right: 0.3em;
+        top: 0.1em;
+        right: 0.1em;
         padding: 0.3em;
         font-size: 2em;
         height: 1em;

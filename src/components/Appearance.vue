@@ -156,11 +156,13 @@ openDB()
       <li>外观</li>
     </ul>
     <div class="p-content p-storage" v-if="true">
-      选择文件夹
-      <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+      <div class="operate">
+        <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
+      </div>
       <div class="workspace-item" v-for="item in workspaceList">
-        {{ item.file.name }} <button @click="useItem(item.id)">使用</button><button
-          @click="deleteItem(item.id)">删除</button>
+        <span>{{ item.file.name }} </span>
+        <button @click="useItem(item.id)" :disabled="item.current">使用</button>
+        <button @click="deleteItem(item.id)">删除</button>
       </div>
     </div>
 
@@ -178,18 +180,39 @@ openDB()
     height: 100%;
     margin: 0;
     padding: 0;
-    background: #f5f6fa;
+    border-right: 1px solid black;
 
-    li {
-      height: 50px;
+    >li {
+      height: 1em;
       list-style: none;
       text-align: center;
+      padding: 0.5em 0px;
 
     }
   }
 
   .p-content {
     flex: 1;
+    >.operate {
+      padding: 0.5em 1em;
+      border-bottom: 1px solid black;
+    }
+    >.workspace-item {
+      display: flex;
+      align-items: center;
+      
+      padding: 0.5em 1em;
+      border-bottom: 1px solid black;
+      >span {
+        flex: 1;
+      }
+      >button {
+        width: 70px;
+        margin-left: 1em;
+      }
+
+    }
+
   }
 
   .p-storage {}
