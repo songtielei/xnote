@@ -215,23 +215,17 @@ onMounted(async () => {
 <template>
   <main>
     <div class="sidebar">
-      <div class="top-group">
+      <div class="account">
+        <img src="src/assets/avatar.png" />
+      </div>
+      <div>笔记</div>
+      <div>标签</div>
+      <div>文件</div>
 
-        <div class="account">
-          <img src="src/assets/avatar.png" />
-        </div>
-        <div>笔记</div>
-        <div>标签</div>
-        <div>文件</div>
+      <div class="setting" @click="() => { showPreference = true }">
+        设置
       </div>
-      <div class="bottom-group">
-        <div @click="() => {
-          showPreference = true
-        }
-          ">
-          设置
-        </div>
-      </div>
+
     </div>
     <div class="nav" @scroll="handleScroll">
       <div class="nav-head">
@@ -337,20 +331,25 @@ main {
 
   >.sidebar {
     width: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    div {
+      margin-bottom: 5px;
+    }
 
-    //background-color: white;
-    >.top-group {
-      position: absolute;
-      top: 0px;
-      >.account {
-        border-radius: 30px;
-        background-color: black;
-        overflow: hidden;
+    >.account {
+      padding: 0;
+      border-radius: 30px;
+      background-color: black;
+      overflow: hidden;
+      >img {
+        display: block; /* 阻止图片下方出现额外的空间 */  
       }
     }
-    >.bottom-group {
-      position: absolute;
-      bottom: 0px;
+
+    >.setting {
+      margin-top: auto;
     }
   }
 
