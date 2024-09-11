@@ -5,7 +5,7 @@ import { ref, reactive, shallowRef, onMounted } from 'vue'
 import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
-import Appearance from './components/Appearance.vue'
+import Appearance from './components/ConfigAppearance.vue'
 import { parse, stringify } from './utils/front_matter'
 import moment from 'moment';
 
@@ -86,8 +86,6 @@ async function handleScroll() {
  * @returns 无返回值
  */
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  let isLoad = false
-  let fileItem;
   const query = await handle.queryPermission({})
   if (query !== 'granted') {
     const request = await handle.requestPermission({})
@@ -126,12 +124,6 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   currentFileItem = contentList.value[0]
   content(currentFileItem)
-
-}
-
-async function checkPermission(fileHandle) {
-  const query = await fileHandle.queryPermission({})
-  workspaceList.value.push(fileHandle);
 
 }
 

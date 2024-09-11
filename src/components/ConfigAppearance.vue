@@ -10,7 +10,7 @@ const dbName = 'xzfilehandle'
 let db: IDBOpenDBRequest
 const workspaceList = ref<FileHandleDO[]>([])
 let fileHandle: FileSystemDirectoryHandle
-const contentList = ref<any>([])
+
 // file picker
 async function getFileHandle() {
   fileHandle = await window.showDirectoryPicker()
@@ -61,40 +61,11 @@ async function getFileHandle() {
 }
 function saveHandle(handle: FileHandleDO) {
   const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
-  console.log(handle)
   transaction.add(handle)
 }
-async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  fileHandle = handle;
-  const query = await handle.queryPermission({})
-  if (query !== 'granted') {
-    const request = await handle.requestPermission({})
 
-  }
-  contentList.value.length = 0
-
-  for await (const h of handle.values()) {
-    if (h.kind === 'directory') {
-      continue
-    }
-    const file = await h.getFile()
-    if (file !== null && !file.name.startsWith('.')) {
-      const text = await file.text()
-      contentList.value.push({
-        content: text.substring(0, 20),
-        dateTime: h.lastModified,
-        handle: h
-      })
-      if (!isLoad) {
-        markdownContent.value = text
-        isLoad = true
-      }
-    }
-  }
-  isLoad = false
-}
-
-function restoreHandle(db) {
+function restoreHandle(db: IDBOpenDBRequest) {
+  workspaceList.value.length = 0;
   const req = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
 
   req.onsuccess = (event) => {
@@ -144,6 +115,7 @@ function useItem(id: number) {
       cursor.continue();
     } else {
       console.log("没有更多记录了！");
+      restoreHandle(db);
     }
   }
 }
