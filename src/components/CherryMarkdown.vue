@@ -121,6 +121,10 @@ export default {
         display: {
             type: String,
             default: 'edit'
+        },
+        dirRoot: {
+            type: Object,
+            default: null
         }
     },
     watch: {
@@ -145,6 +149,7 @@ export default {
             //cherryInstance: null,
 
             curTab: 0,
+
         };
     },
     mounted() {
@@ -266,7 +271,8 @@ export default {
                 afterInit,
                 beforeImageMounted,
                 fileUpload,
-                mdId
+                mdId,
+                getDirRoot,
             } = this;
             const defaultValue = value || this.value;
             cherryInstance = new Cherry({
@@ -311,6 +317,23 @@ export default {
                         'graph',
                         'settings',
                     ],
+                },
+                previewer: {
+                    lazyLoadImg: {
+                        noLoadImgNum: 0,
+                        beforeLoadOneImgCallback(img) {
+                            this.changeURL(img);
+                            return false;
+                        },
+                        async changeURL(img) {
+                            const media = await getDirRoot().file.getDirectoryHandle('media');
+                            const i = await media.getFileHandle(img.alt);
+                            const fi = await i.getFile();
+                            const s = URL.createObjectURL(fi);
+                            img.src = s;
+                            console.log(s);
+                        },
+                    }
                 },
             })
         },
@@ -358,7 +381,7 @@ export default {
 
         // 图片加载回调
         beforeImageMounted(e, src) {
-            //console.log('bfImageMt', e, src)
+
             return {
                 [e]: src
             }
@@ -416,6 +439,10 @@ export default {
             }
             this.$message.warning('编辑器未初始化，请检查')
             return false
+        },
+
+        getDirRoot() {
+            return this.dirRoot;
         }
     },
 };

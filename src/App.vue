@@ -181,7 +181,7 @@ function addTag(event) {
 // 如果没有则打开设置页面 新建或选择文件夹
 // 如果有则进入首页
 
-let currentDir = ref();
+let currentDir = ref<FileSystemDirectoryHandle>();
 
 onMounted(async () => {
   const dbName = 'xzfilehandle'
@@ -207,8 +207,8 @@ onMounted(async () => {
     }
 
   };
-
 })
+
 
 </script>
 
@@ -253,7 +253,7 @@ onMounted(async () => {
         <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
         <button class="save" @click="saveContent">保存</button>
       </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" />
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" />
 
     </div>
   </main>
