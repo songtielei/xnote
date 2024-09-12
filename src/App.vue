@@ -113,13 +113,15 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   if (contentList.value.length > 0) {
     contentList.value.sort((a, b) => {
       // 按照修改时间排序 修改时间晚的排前面
-      if(!b.parsedMarkdown.updated) {
+      if (a.parsedMarkdown.updated !== undefined && b.parsedMarkdown.updated !== undefined) {
+        return new Date(b.parsedMarkdown.updated).getTime() - new Date(a.parsedMarkdown.updated).getTime();
+      } else if (a.parsedMarkdown.updated === undefined && b.parsedMarkdown.updated !== undefined) {
         return 1;
+      } else if (a.parsedMarkdown.updated !== undefined && b.parsedMarkdown.updated === undefined) {
+        return -1;
+      } else {
+        return b.handle.getFile().lastModified > a.handle.getFile().lastModified;
       }
-      if (!a.parsedMarkdown.updated) {
-        return 1;
-      }
-      return new Date(b.parsedMarkdown.updated).getTime() - new Date(a.parsedMarkdown.updated).getTime();
     })
   }
   currentFileItem = contentList.value[0]
