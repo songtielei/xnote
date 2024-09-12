@@ -98,17 +98,22 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
       continue
     }
     const file = await h.getFile()
-    if (file !== null && !file.name.startsWith('.')) {
-      const text = await file.text()
-      const parsedMarkdown = parse(text)
-      const fileItem = {
-        summary: parsedMarkdown._content.substring(0, 20),
-        parsedMarkdown: parsedMarkdown,
-        handle: h
-      }
-      contentList.value.push(fileItem)
-
+    if (file === null || file.name.startsWith('.')) {
+      continue;
     }
+    if (file.name.slice(-3) !== '.md') {
+      continue;
+    }
+
+    const text = await file.text()
+    const parsedMarkdown = parse(text)
+    const fileItem = {
+      summary: parsedMarkdown._content.substring(0, 20),
+      parsedMarkdown: parsedMarkdown,
+      handle: h,
+    }
+    contentList.value.push(fileItem)
+
   }
   if (contentList.value.length > 0) {
     contentList.value.sort((a, b) => {
