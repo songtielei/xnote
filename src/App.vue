@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 import { ref, reactive, shallowRef, onMounted } from 'vue'
 import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
