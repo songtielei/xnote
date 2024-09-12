@@ -214,7 +214,7 @@ onMounted(async () => {
   <main>
     <div class="sidebar">
       <div class="account">
-        <img src="src/assets/avatar.png" />
+        <img src="./assets/avatar.png" />
       </div>
       <div>笔记</div>
       <div>标签</div>
