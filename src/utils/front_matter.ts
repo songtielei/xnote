@@ -126,8 +126,8 @@ function stringify(obj, options: Options = {}) {
 function stringifyYAML(obj, options) {
   const keys = Object.keys(obj);
   const data = {};
-  const nullKeys = [];
-  const dateKeys = [];
+  const nullKeys: string[] = [];
+  const dateKeys: string[] = [];
   let key, value, i, len;
 
   for (i = 0, len = keys.length; i < len; i++) {

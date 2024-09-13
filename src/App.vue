@@ -85,14 +85,14 @@ async function handleScroll() {
  * @returns 无返回值
  */
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  const query = await handle.queryPermission({})
+  const query = await (handle as any).queryPermission({})
   if (query !== 'granted') {
-    const request = await handle.requestPermission({})
+    const request = await (handle as any).requestPermission({})
 
   }
   contentList.value.length = 0
 
-  for await (const h of handle.values()) {
+  for await (const h of (handle as any).values()) {
     if (h.kind === 'directory') {
       continue
     }
@@ -155,7 +155,7 @@ function saveContent() {
 async function newFile() {
   const fileName = new Date().getTime() + '.md';
   console.log(fileName)
-  const draftHandle = await currentDir.value.file.getFileHandle(fileName, { create: true });
+  const draftHandle = await (currentDir.value as any).file.getFileHandle(fileName, { create: true });
   const item = {
     summary: '',
     parsedMarkdown: {},
@@ -190,12 +190,12 @@ onMounted(async () => {
     let reqq = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
 
     reqq.onsuccess = (event) => {
-      const cursor = event.target.result;
+      const cursor = (event.target as any)?.result;
       if (cursor) {
         if (cursor.value.current) {
           showPreference.value = false;
           currentDir.value = cursor.value;
-          displayWorkspace(currentDir.value.file);
+          displayWorkspace((currentDir.value as any).file);
         } else {
           cursor.continue();
         }
@@ -227,13 +227,13 @@ onMounted(async () => {
     </div>
     <div class="nav" @scroll="handleScroll">
       <div class="nav-head">
-        <span class="workspace-item" @click="displayWorkspace(currentDir.file)">
+        <span class="workspace-item" @click="displayWorkspace((currentDir as any).file)">
           {{ currentDir?.file.name }}
         </span>
         <button @click="newFile">新建</button>
       </div>
       <div class="item-list">
-        <div class="item" v-for="item in contentList" @click="content(item)">
+        <div class="item" v-for="item in contentList" :key="item.date" @click="content(item)">
           <div class="title">{{ item.parsedMarkdown?.title }}</div>
           <div class="summary">{{ item.summary }}</div>
           <div class="date">{{ moment(item.parsedMarkdown?.date).format('YYYY-MM-DD') }}</div>
@@ -246,7 +246,7 @@ onMounted(async () => {
       <div class="contentHeader">
         <input class="title" type="text" placeholder="标题" v-model="title"/>
         <ul class="tag">
-          <li v-for="tag in tags">{{ tag }}</li>
+          <li v-for="tag in tags" :key="tag">{{ tag }}</li>
         </ul>
         <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
         <button class="save" @click="saveContent">保存</button>

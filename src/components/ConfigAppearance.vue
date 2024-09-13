@@ -13,14 +13,14 @@ let fileHandle: FileSystemDirectoryHandle
 
 // file picker
 async function getFileHandle() {
-  fileHandle = await window.showDirectoryPicker()
+  fileHandle = await (window as any).showDirectoryPicker()
 
   const req = indexedDB.open(dbName, 1)
 
   req.onsuccess = () => {
     const cursorReq = req.result.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
     cursorReq.onsuccess = (event) => {
-      let cursor = event.target.result;
+      let cursor = (event.target as any).result;
       let exist = false;
       if (cursor) {
         if (cursor.value.file.name === fileHandle.name) {
@@ -60,13 +60,13 @@ async function getFileHandle() {
 
 }
 function saveHandle(handle: FileHandleDO) {
-  const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
+  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
   transaction.add(handle)
 }
 
 function restoreHandle(db: IDBOpenDBRequest) {
   workspaceList.value.length = 0;
-  const req = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
+  const req = (db as any).transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
 
   req.onsuccess = (event) => {
     const cursor = event.target.result;
@@ -95,12 +95,12 @@ function openDB() {
   }
 }
 function deleteItem(id: number) {
-  const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
+  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
   transaction.delete(id)
   workspaceList.value = workspaceList.value.filter(item => item.id !== id)
 }
 function useItem(id: number) {
-  const transaction = db.transaction('handle', 'readwrite').objectStore('handle')
+  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
   transaction.openCursor().onsuccess = (event) => {
     const cursor = event.target.result;
     if (cursor) {
@@ -131,7 +131,7 @@ openDB()
       <div class="operate">
         <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
       </div>
-      <div class="workspace-item" v-for="item in workspaceList">
+      <div class="workspace-item" v-for="item in workspaceList" :key="item.id">
         <span>{{ item.file.name }} </span>
         <button @click="useItem(item.id)" :disabled="item.current">使用</button>
         <button @click="deleteItem(item.id)">删除</button>
