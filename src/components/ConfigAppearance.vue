@@ -84,13 +84,13 @@ function restoreHandle(db: IDBOpenDBRequest) {
 
 function openDB() {
   const req = indexedDB.open(dbName, 1)
-  req.onupgradeneeded = (ev) => {
-    req.result.createObjectStore('handle', {
+  req.onupgradeneeded = (event) => {
+    (event.target as any).result.createObjectStore('handle', {
       keyPath: 'id'
     })
   }
-  req.onsuccess = (ev) => {
-    db = req.result
+  req.onsuccess = (event) => {
+    db = (event.target as any).result
     restoreHandle(db)
   }
 }

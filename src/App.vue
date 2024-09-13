@@ -146,7 +146,7 @@ function saveContent() {
     currentFileItem.parsedMarkdown.date = new Date()
   }
   currentFileItem.parsedMarkdown.updated = new Date()
-  const content = stringify(currentFileItem.parsedMarkdown, { mode: 'yaml', separator: '---', prefixSeparator: true });
+  const content = stringify(currentFileItem.parsedMarkdown, { mode: '', separator: '---', prefixSeparator: true });
   currentFileItem.parsedMarkdown._content = c
   markdownContent.value = currentFileItem.parsedMarkdown._content;
   writeFile(fileHandle, content);
@@ -228,7 +228,7 @@ onMounted(async () => {
     <div class="nav" @scroll="handleScroll">
       <div class="nav-head">
         <span class="workspace-item" @click="displayWorkspace((currentDir as any).file)">
-          {{ currentDir?.file.name }}
+          {{ (currentDir as any)?.file.name }}
         </span>
         <button @click="newFile">新建</button>
       </div>

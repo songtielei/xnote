@@ -61,7 +61,7 @@
     position: absolute;
     top: 10px;
     right: 8px;
-    heigth: 30px;
+    height: 30px;
     padding-right: 5px;
     color: red;
     font-weight: bold;
