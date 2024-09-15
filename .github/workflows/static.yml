@@ -31,13 +31,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: './dist/'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # 安装依赖  
+      - name: Install dependencies  
+        run: npm install  
+  
+      # 构建项目  
+      - name: Build  
+        run: npm run build  
+  
+      # 部署到 GitHub Pages  
+      - name: Deploy  
+        uses: JamesIves/github-pages-deploy-action@v4.3.3  
+        with:  
+          branch: gh-pages # 部署的分支，GitHub Pages 默认是 gh-pages 分支  
+          folder: dist # 部署的文件夹  
+          clean: true # 在部署前清空 gh-pages 分支
