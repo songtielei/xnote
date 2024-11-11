@@ -217,12 +217,17 @@ onMounted(async () => {
         <img src="./assets/avatar.png" />
       </div>
       <div>笔记</div>
+      <!--
+      <div>密码</div>
+      <div>任务</div>
+      -->
       <div>标签</div>
-      <div>文件</div>
-
+      
+      <!--
       <div class="setting" @click="() => { showPreference = true }">
         设置
       </div>
+      -->
     </div>
 
     <div class="nav" @scroll="handleScroll">
@@ -322,7 +327,9 @@ onMounted(async () => {
     }
   }
 }
-
+* {
+  box-sizing: border-box;
+}
 
 main {
   height: 100%;
@@ -330,6 +337,7 @@ main {
   border: solid 0px;
 
     >.sidebar {
+      padding: 5px 0;
       margin: 4px;
       width: 50px;
       border-radius: 5px;
@@ -344,10 +352,13 @@ main {
 
       >.account {
         padding: 0;
+        border: solid 1px;
         border-radius: 30px;
         background-color: black;
         overflow: hidden;
         >img {
+          cursor: pointer;
+          width: 40px;
           display: block; /* 阻止图片下方出现额外的空间 */  
         }
       }
