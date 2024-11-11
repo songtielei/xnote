@@ -5,6 +5,7 @@
     top: 0px;
     right: 0px;
     bottom: 0px;
+    border-bottom: solid 1px;
 }
 
 .toc-container {
@@ -70,7 +71,7 @@
 }
 </style>
 <template>
-    <div @click.prevent.stop style="position: relative; width: 100%; height: calc(100% - 45px); z-index: 99;">
+    <div @click.prevent.stop style="position: relative; flex: 1;">
 
         <!-- ------- markdown组件容器 --------- -->
         <div :ref="mdId" :id="mdId" class="cherry-container scroll" :style="{ 'left': toc_visiable ? '262px' : '0px' }"></div>

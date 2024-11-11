@@ -223,8 +223,8 @@ onMounted(async () => {
       <div class="setting" @click="() => { showPreference = true }">
         设置
       </div>
-
     </div>
+
     <div class="nav" @scroll="handleScroll">
       <div class="nav-head">
         <span class="workspace-item" @click="displayWorkspace((currentDir as any).file)">
@@ -245,14 +245,16 @@ onMounted(async () => {
     <div class="content">
       <div class="contentHeader">
         <input class="title" type="text" placeholder="标题" v-model="title"/>
+
+        <button class="save" @click="saveContent">保存</button>
+      </div>
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" />
+      <div class="footer">
         <ul class="tag">
           <li v-for="tag in tags" :key="tag">{{ tag }}</li>
         </ul>
         <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
-        <button class="save" @click="saveContent">保存</button>
       </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" />
-
     </div>
   </main>
 
@@ -327,33 +329,40 @@ main {
   display: flex;
   border: solid 0px;
 
-  >.sidebar {
-    width: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    div {
-      margin-bottom: 5px;
-    }
+    >.sidebar {
+      margin: 4px;
+      width: 50px;
+      border-radius: 5px;
+      border: solid 1px;
+      height: calc(100% - 8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      div {
+        margin-bottom: 5px;
+      }
 
-    >.account {
-      padding: 0;
-      border-radius: 30px;
-      background-color: black;
-      overflow: hidden;
-      >img {
-        display: block; /* 阻止图片下方出现额外的空间 */  
+      >.account {
+        padding: 0;
+        border-radius: 30px;
+        background-color: black;
+        overflow: hidden;
+        >img {
+          display: block; /* 阻止图片下方出现额外的空间 */  
+        }
+      }
+
+      >.setting {
+        margin-top: auto;
       }
     }
 
-    >.setting {
-      margin-top: auto;
-    }
-  }
+
 
   >.nav {
-    border-left: solid 1px;
-    border-right: solid 1px;
+    margin: 4px;
+    border-radius: 5px;
+    border: solid 1px;
     width: 300px;
     overflow: hidden;
 
@@ -377,10 +386,9 @@ main {
       height: 100%;
       overflow: auto;
       
-
       .item {
+        margin: 4px;
         border-bottom: solid 1px;
-        border-right: solid 1px;
         height: 70px;
         padding: 5px 10px;
         .title {
@@ -401,10 +409,17 @@ main {
   }
 
   >.content {
+    margin: 4px;
+    border-radius: 5px;
+    border: solid 1px;
+
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
     //padding-top: 50px;
     //background-color: #f5f7f9;
-    .contentHeader {
+    >.contentHeader {
       //position: relative; 
       //top: 0px; 
       //width: 100%; 
@@ -418,10 +433,22 @@ main {
         width: 300px; 
         height: 20px;
       }
+
+
+      >.save {
+        margin-left: auto;
+      }
+    }
+    >.footer {
+      height: 30px;
+      display: flex; 
+      align-items: center;
+      padding: 0.2em 0.5em;
       >.tag {
 
         display: inline-block; 
         margin: 0px;
+        padding: 0px;
         >li {
           display: inline-block; 
           border: solid 1px; 
@@ -434,9 +461,6 @@ main {
       >.addTag {
         width: 60px;
         height: 20px;
-      }
-      >.save {
-        margin-left: auto;
       }
     }
   }
