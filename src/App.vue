@@ -226,6 +226,7 @@ onMounted(async () => {
         <div>退出</div>
       </div>
       <div>笔记</div>
+      <div>剪藏</div>
       <!--
       <div>密码</div>
       <div>任务</div>
