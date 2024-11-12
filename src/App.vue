@@ -48,7 +48,7 @@ let currentFileItem;
 let tags = ref<any>([])
 let title = ref<string>('')
 let markdownContent = ref<string>('')
-
+let showAccount = ref(false);
 
 async function content(fileItem) {
   currentFileItem = fileItem;
@@ -214,7 +214,16 @@ onMounted(async () => {
   <main>
     <div class="sidebar">
       <div class="account">
-        <img src="./assets/avatar.png" />
+        <img src="./assets/avatar.png" @click="() => {showAccount = !showAccount}"/>
+      </div>
+      <div v-show="showAccount" style="position: absolute; left: 54px; top: 0px; width: 300px; z-index: 100; border: solid 1px; height: calc(100vh - 15px); margin: 4px; background-color: white;">
+        <div>songtielei</div>
+        <div>主题</div>
+        <div>语言</div>
+        <div class="setting" @click="() => { showPreference = true }">
+          设置
+        </div>
+        <div>退出</div>
       </div>
       <div>笔记</div>
       <!--
@@ -337,6 +346,7 @@ main {
   border: solid 0px;
 
     >.sidebar {
+      position: relative;
       padding: 5px 0;
       margin: 4px;
       width: 50px;
