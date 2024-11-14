@@ -126,6 +126,12 @@ export default {
         dirRoot: {
             type: Object,
             default: null
+        },
+        currentItem: {
+            type: Object,
+            default() {
+                return {}
+            }
         }
     },
     watch: {
@@ -286,7 +292,7 @@ export default {
                     beforeImageMounted: beforeImageMounted
                 },
                 toolbars: {
-                    showToolbar: false,
+                    showToolbar: true,
                     sidebar: ['mobilePreview', 'copy', 'theme'],
                     toolbar: [
                         'bold',
@@ -327,12 +333,50 @@ export default {
                             return false;
                         },
                         async changeURL(img) {
-                            const media = await getDirRoot().file.getDirectoryHandle('media');
-                            const i = await media.getFileHandle(img.alt);
-                            const fi = await i.getFile();
-                            const s = URL.createObjectURL(fi);
-                            img.src = s;
-                            console.log(s);
+                            console.log(img);
+                            const src = img.getAttribute('src');
+                            if (!src) {
+                                return;
+                            }
+                            if (this.isValidURL(src)) {
+                                return;
+                            }
+
+                            let dir;
+                            let fi;
+                            const pathArray = src.split('/')
+                            for (let i of pathArray) {
+                                if (!i) {
+                                    continue;
+                                }
+                                try {
+                                    if (i.indexOf('.') < 0) {
+                                        dir = await getDirRoot().file.getDirectoryHandle(i);
+                                    } else {
+                                        fi = await dir.getFileHandle(i);
+                                    }
+                                } catch (e) {
+                                    //console.log(e);
+                                }
+                                
+                            }
+                            if (fi) {
+                                try {
+                                    const a = await fi.getFile();
+                                    const s = URL.createObjectURL(a);
+                                    img.src = s;
+                                } catch (e) {
+                                    console.log(e);
+                                }
+                                
+                            }
+                        },
+                        isValidURL(url) {
+                            try {
+                                return Boolean((new URL(url)));
+                            } catch (_) {
+                                return false;
+                            }
                         },
                     }
                 },
@@ -343,9 +387,33 @@ export default {
          * 编辑器中上传文件操作处理方法（如上传附件、粘贴截图等）
          * @param {Object} file
          */
-        fileUpload(file) {
-            var formData = new FormData(); //新建一个表单数据,用于提交文件
-            formData.append("file", file); //添加文件,参数分别是表单参数的名字和值.
+        async fileUpload(file, callback) {
+            //await this.dirRoot.file.getDirectoryHandle('media');
+            let assets = await this.dirRoot.file.getDirectoryHandle('assets', { create: true });
+            let fileDirectoryHandle = await assets.getDirectoryHandle(this.currentItem.name, { create: true });
+            let fileHandle = await fileDirectoryHandle.getFileHandle(file.name, { create: true });
+
+            let writable = await fileHandle.createWritable();
+
+            try {
+                await writable.write(file);
+            } catch (e) {
+                console.log(e);
+            } finally {
+                await writable.close();
+            }
+            let a = await fileHandle.getFile();
+            let s = URL.createObjectURL(a);
+            callback(s);
+
+
+            //var formData = new FormData(); //新建一个表单数据,用于提交文件
+            //formData.append("file", file); //添加文件,参数分别是表单参数的名字和值.
+            //console.log(this.currentItem.parsedMarkdown.categories)
+            
+
+            //callback('https://pic2.zhimg.com/v2-1e65d749c966d6f8adef4647d3ecd567_b.jpg')
+            //this.cherryInstance.insert('https://pic2.zhimg.com/v2-1e65d749c966d6f8adef4647d3ecd567_b.jpg')
             // Axios.post("/api/common/file/upload", formData, { //使用Axios进行上传图片
             //     headers: {
             //         "Content-Type": "multipart/form-data" //设置请求头,更换内容类型为表单数据
@@ -382,12 +450,47 @@ export default {
 
         // 图片加载回调
         beforeImageMounted(e, src) {
-
             return {
-                [e]: src
+                [e]: src,
             }
         },
+        async changeURL(cc, src) {
+            await this._changeURL(cc, src);
+            
+        },
+        async _changeURL(cc, src) {
+            if (!src || this.isValidURL(src)) {
+                return src;
+            }
 
+            let sr = src;
+            let dir;
+            let fi;
+            const pathArray = src.split('/')
+            for (let i of pathArray) {
+                if (!i) {
+                    continue;
+                }
+                if (i.indexOf('.') < 0) {
+                    dir = await this.getDirRoot().file.getDirectoryHandle(i);
+                } else {
+                    fi = await dir.getFileHandle(i);
+                }
+            }
+            if (fi) {
+                const a = await fi.getFile();
+                const s = URL.createObjectURL(a);
+                sr = s;
+            }
+            cc.s = sr;
+        },
+        isValidURL(url) {
+            try {
+                return Boolean((new URL(url)));
+            } catch (_) {
+                return false;
+            }
+        },
         /**
          * 设置markdown编辑器内容，全部覆盖
          * @param {Object} content 要设置的内容

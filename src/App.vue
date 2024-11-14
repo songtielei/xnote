@@ -108,6 +108,11 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
     const parsedMarkdown = parse(text)
     const fileItem = {
       summary: parsedMarkdown._content.substring(0, 20),
+      name: file.name.slice(0, -3),
+      ext: file.name.slice(-3),
+      get fileName() {
+        return this.name + this.ext
+      },
       parsedMarkdown: parsedMarkdown,
       handle: h,
     }
@@ -137,6 +142,7 @@ function mdChange(mdHtml, mdTxt, mdContent) {
   currentFileItem.parsedMarkdown._content = mdContent;
 }
 
+//TODO category
 function saveContent() {
   const fileHandle = currentFileItem.handle;
   const c = currentFileItem.parsedMarkdown._content
@@ -153,11 +159,16 @@ function saveContent() {
 }
 
 async function newFile() {
-  const fileName = new Date().getTime() + '.md';
-  console.log(fileName)
-  const draftHandle = await (currentDir.value as any).file.getFileHandle(fileName, { create: true });
+  const file = new Date().getTime();
+  const ext = '.md';
+  const draftHandle = await (currentDir.value as any).file.getFileHandle(file + ext, { create: true });
   const item = {
     summary: '',
+    name: '',
+    ext: '.md',
+    get fileName() {
+      return this.name + this.ext;
+    },
     parsedMarkdown: {},
     handle: draftHandle
   }
@@ -233,11 +244,9 @@ onMounted(async () => {
       -->
       <div>标签</div>
       
-      <!--
       <div class="setting" @click="() => { showPreference = true }">
-        设置
+        仓库
       </div>
-      -->
     </div>
 
     <div class="nav" @scroll="handleScroll">
@@ -263,7 +272,7 @@ onMounted(async () => {
 
         <button class="save" @click="saveContent">保存</button>
       </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" />
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" :currentItem="currentFileItem" />
       <div class="footer">
         <ul class="tag">
           <li v-for="tag in tags" :key="tag">{{ tag }}</li>
