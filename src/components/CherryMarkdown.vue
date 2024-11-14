@@ -333,7 +333,6 @@ export default {
                             return false;
                         },
                         async changeURL(img) {
-                            console.log(img);
                             const src = img.getAttribute('src');
                             if (!src) {
                                 return;
@@ -341,8 +340,7 @@ export default {
                             if (this.isValidURL(src)) {
                                 return;
                             }
-
-                            let dir;
+                            let dir = getDirRoot().file;
                             let fi;
                             const pathArray = src.split('/')
                             for (let i of pathArray) {
@@ -351,12 +349,12 @@ export default {
                                 }
                                 try {
                                     if (i.indexOf('.') < 0) {
-                                        dir = await getDirRoot().file.getDirectoryHandle(i);
+                                        dir = await dir.getDirectoryHandle(i);
                                     } else {
                                         fi = await dir.getFileHandle(i);
                                     }
                                 } catch (e) {
-                                    //console.log(e);
+                                    console.log(e);
                                 }
                                 
                             }
@@ -402,9 +400,9 @@ export default {
             } finally {
                 await writable.close();
             }
-            let a = await fileHandle.getFile();
-            let s = URL.createObjectURL(a);
-            callback(s);
+            //let a = await fileHandle.getFile();
+            //let s = URL.createObjectURL(a);
+            callback('assets/' + this.currentItem.name + '/' + file.name);
 
 
             //var formData = new FormData(); //新建一个表单数据,用于提交文件
