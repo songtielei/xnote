@@ -250,7 +250,11 @@ onMounted(async () => {
     </div>
 
     <div class="nav" @scroll="handleScroll">
-      <div class="nav-head">
+      <div class="nav-search">
+        <input type="text" />
+        <button @click="newFile">搜索</button>
+      </div>
+      <div class="nav-workspace">
         <span class="workspace-item" @click="displayWorkspace((currentDir as any).file)">
           {{ (currentDir as any)?.file.name }}
         </span>
@@ -399,7 +403,7 @@ main {
 
     //background-color: white;
 
-    >.nav-head {
+    >.nav-workspace {
       display: flex; 
       align-items: center;
       border-bottom: solid 1px; 
