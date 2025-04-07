@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import { ref, reactive, shallowRef, onMounted } from 'vue'
+import { ref, reactive, shallowRef, onMounted, watch } from 'vue'
 import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
 import Appearance from './components/ConfigAppearance.vue'
 import { parse, stringify } from './utils/front_matter'
 import moment from 'moment';
+
+import { Index, type IndexOptions } from 'flexsearch'
+import * as indexedDBUtil from './utils/indexedDBUtil'
+import { FlexSearchHelper } from './utils/flexsearch-helper'
+
 
 //   const opfsRoot = await navigator.storage.getDirectory();
 // // 类型为 "directory"、名称为 "" 的 FileSystemDirectoryHandle。
@@ -40,9 +45,12 @@ import moment from 'moment';
 //   const file = await fileHandle.getFile();
 // console.log(await file.text());
 
-
+interface Content {
+  name: string;
+  content: string;
+}
 let showPreference = ref(true)
-const contentList = ref<any>([])
+let contentList = ref<any>([])
 
 let currentFileItem;
 let tags = ref<any>([])
@@ -77,7 +85,6 @@ async function handleScroll() {
 
 }
 
-
 /**
  * 显示工作区内容
  *
@@ -92,9 +99,10 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   contentList.value.length = 0
 
+  // TO FIX
   for await (const h of (handle as any).values()) {
     if (h.kind === 'directory') {
-      continue
+      continue;
     }
     const file = await h.getFile()
     if (file === null || file.name.startsWith('.')) {
@@ -107,7 +115,7 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
     const text = await file.text()
     const parsedMarkdown = parse(text)
     const fileItem = {
-      summary: parsedMarkdown._content.substring(0, 20),
+      summary: parsedMarkdown._content.substring(0, 30),
       name: file.name.slice(0, -3),
       ext: file.name.slice(-3),
       get fileName() {
@@ -135,8 +143,19 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   currentFileItem = contentList.value[0]
   content(currentFileItem)
+  
+ 
+  contentList.value.forEach(item => {
+    const content = {
+      name: item.name,
+      content: item.parsedMarkdown._content
+    }
+    contentSearch.add(item.name, content);
+  })
 
 }
+
+const contentSearch = new FlexSearchHelper<Content>(['name', 'content']);
 
 function mdChange(mdHtml, mdTxt, mdContent) {
   currentFileItem.parsedMarkdown._content = mdContent;
@@ -190,34 +209,38 @@ function addTag(event) {
 // 如果没有则打开设置页面 新建或选择文件夹
 // 如果有则进入首页
 
-let currentDir = ref<FileSystemDirectoryHandle>();
+let currentHandle = ref<indexedDBUtil.FileHandleDO>();
 
 onMounted(async () => {
-  const dbName = 'xzfilehandle'
-  const req = indexedDB.open(dbName, 1);
-
-  req.onsuccess = (ev) => {
-    let db = req.result
-    let reqq = db.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
-
-    reqq.onsuccess = (event) => {
-      const cursor = (event.target as any)?.result;
-      if (cursor) {
-        if (cursor.value.current) {
-          showPreference.value = false;
-          currentDir.value = cursor.value;
-          displayWorkspace((currentDir.value as any).file);
-        } else {
-          cursor.continue();
-        }
-
-      }
-
+  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
+    if (!cursor.value.current) {
+      cursor.continue();
     }
+    showPreference.value = false;
+    const f: indexedDBUtil.FileHandleDO = cursor.value;
+    currentHandle.value = f;
+    displayWorkspace(currentHandle.value.file);
+  })
 
-  };
 })
-
+const searchInput = ref('');
+const oldList = contentList.value;
+// 搜索
+async function performSearch() {
+  if (!searchInput.value) {
+    // 如果搜索框为空，恢复原始列表
+    contentList.value = oldList;
+    return;
+  }
+  // 简单搜索
+  const results = await contentSearch.search(searchInput.value);
+  const resultsSet = new Set();
+  results.forEach(result => {
+    resultsSet.add(result.id);
+  });
+  contentList.value = contentList.value.filter(item => resultsSet.has(item.name));
+  console.log('Simple search results:', contentList.value);
+}
 
 </script>
 
@@ -251,12 +274,11 @@ onMounted(async () => {
 
     <div class="nav" @scroll="handleScroll">
       <div class="nav-search">
-        <input type="text" />
-        <button @click="newFile">搜索</button>
+        <input type="text" v-model="searchInput" @keyup.enter="performSearch" />
       </div>
       <div class="nav-workspace">
-        <span class="workspace-item" @click="displayWorkspace((currentDir as any).file)">
-          {{ (currentDir as any)?.file.name }}
+        <span class="workspace-item" @click="displayWorkspace((currentHandle as any).file)">
+          {{ (currentHandle as any)?.file.name }}
         </span>
         <button @click="newFile">新建</button>
       </div>
@@ -299,6 +321,9 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
+:root {
+  font-size: 1rem;
+}
 .modal {
   //display: block;
   z-index: 100;
@@ -424,11 +449,14 @@ main {
       .item {
         margin: 4px;
         border-bottom: solid 1px;
-        height: 70px;
+        height: 80px;
         padding: 5px 10px;
         .title {
-          font-size: 14px;
-          height: 25%;
+          box-sizing: border-box;
+          padding: 5px 10px;
+          font-size: 1em;
+          height: 1em;
+          overflow: hidden;
         }
         .summary {
           font-size: 12px;

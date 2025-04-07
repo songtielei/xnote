@@ -1,125 +1,83 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import * as indexedDBUtil from '../utils/indexedDBUtil'
 
-interface FileHandleDO {
-  id: number,
-  current: boolean,
-  file: FileSystemDirectoryHandle
-}
-const dbName = 'xzfilehandle'
-let db: IDBOpenDBRequest
-const workspaceList = ref<FileHandleDO[]>([])
+const workspaceList = ref<indexedDBUtil.FileHandleDO[]>([])
 let fileHandle: FileSystemDirectoryHandle
 
 // file picker
 async function getFileHandle() {
-  fileHandle = await (window as any).showDirectoryPicker()
-
-  const req = indexedDB.open(dbName, 1)
-
-  req.onsuccess = () => {
-    const cursorReq = req.result.transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
-    cursorReq.onsuccess = (event) => {
-      let cursor = (event.target as any).result;
-      let exist = false;
-      if (cursor) {
-        if (cursor.value.file.name === fileHandle.name) {
-          console.log('目录存在')
-          exist = true;
-          cursor.continue();
-        } else {
-
-          if (!exist) {
-            let f: FileHandleDO = {
-              id: new Date().getTime(),
-              current: false,
-              file: fileHandle
-            }
-            saveHandle(f)
-            workspaceList.value.push(f)
-
-
-          } else {
-            console.log('目录已存在')
-          }
-        }
-      } else {
-        let f: FileHandleDO = {
-          id: new Date().getTime(),
-          current: false,
-          file: fileHandle
-        }
-        saveHandle(f)
-        workspaceList.value.push(f)
+  fileHandle = await (window as any).showDirectoryPicker();
+  let exist = false;
+  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
+    if (cursor) {
+      if (cursor.value.file.name === fileHandle.name) {
+        console.log('目录存在')
+        exist = true;
+        // cursor.continue();
       }
-
     }
+  })
 
+  if (!exist) {
+    const f: indexedDBUtil.FileHandleDO = {
+      id: new Date().getTime(),
+      current: false,
+      file: fileHandle
+    }
+    saveHandle(f)
+    workspaceList.value.push(f);
   }
 
-
-}
-function saveHandle(handle: FileHandleDO) {
-  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
-  transaction.add(handle)
 }
 
-function restoreHandle(db: IDBOpenDBRequest) {
+function saveHandle(handle: indexedDBUtil.FileHandleDO) {
+  indexedDBUtil.getObjectStore(indexedDBUtil.defaultObjectStoreName).add(handle);
+}
+
+function restoreHandle() {
   workspaceList.value.length = 0;
-  const req = (db as any).transaction('handle', 'readwrite')?.objectStore('handle').openCursor();
-
-  req.onsuccess = (event) => {
-    const cursor = event.target.result;
+  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
     if (cursor) {
-      console.log(cursor.value)
-      let f: FileHandleDO = cursor.value;
-      workspaceList.value.push(f);
+      workspaceList.value.push(cursor.value);
       cursor.continue();
     } else {
       console.log("没有更多记录了！");
     }
-
-  }
+  })
 }
 
-function openDB() {
-  const req = indexedDB.open(dbName, 1)
-  req.onupgradeneeded = (event) => {
-    (event.target as any).result.createObjectStore('handle', {
-      keyPath: 'id'
-    })
-  }
-  req.onsuccess = (event) => {
-    db = (event.target as any).result
-    restoreHandle(db)
-  }
-}
 function deleteItem(id: number) {
-  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
-  transaction.delete(id)
+  indexedDBUtil.getObjectStore(indexedDBUtil.defaultObjectStoreName).delete(id);
   workspaceList.value = workspaceList.value.filter(item => item.id !== id)
 }
+
 function useItem(id: number) {
-  const transaction = (db as any).transaction('handle', 'readwrite').objectStore('handle')
-  transaction.openCursor().onsuccess = (event) => {
-    const cursor = event.target.result;
+  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
     if (cursor) {
-      console.log(cursor.value)
-      let f: FileHandleDO = cursor.value;
+      const f: indexedDBUtil.FileHandleDO = cursor.value;
       if (f.id === id) {
         f.current = true
       } else {
         f.current = false
       }
-      transaction.put(f)
+      objectStore.put(f)
+      // 执行下一条数据的 req.onsuccess
       cursor.continue();
     } else {
       console.log("没有更多记录了！");
-      restoreHandle(db);
+      restoreHandle();
     }
-  }
+  })
 }
-openDB()
+
+onMounted(() => {
+  restoreHandle();
+})
+
+onUnmounted(() => {
+  // indexedDBUtil.closeDB();
+});
 </script>
 <template>
   <div class="container">
