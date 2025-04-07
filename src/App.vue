@@ -239,7 +239,6 @@ async function performSearch() {
     resultsSet.add(result.id);
   });
   contentList.value = contentList.value.filter(item => resultsSet.has(item.name));
-  console.log('Simple search results:', contentList.value);
 }
 
 </script>

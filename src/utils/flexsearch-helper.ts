@@ -15,8 +15,6 @@ function  tokenizeChinese(text: string): string[] {
     simple: true,
     stripPunctuation: true
   });
-  console.log('fenci')
-  console.log(tokens)
   return tokens;
   // return tokens.flatMap(token => FlexSearch.tokenize(token));
 }
@@ -68,7 +66,6 @@ export class FlexSearchHelper<T extends Record<string, any>> {
     this.worker = options.worker ?? false;
 
     // 创建索引
-    console.log(options.indexConfig)
     this.index = new FlexSearch.Index(options.indexConfig);
   }
 
