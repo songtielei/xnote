@@ -180,7 +180,7 @@ function saveContent() {
 async function newFile() {
   const file = new Date().getTime();
   const ext = '.md';
-  const draftHandle = await (currentDir.value as any).file.getFileHandle(file + ext, { create: true });
+  const draftHandle = await currentHandle.value?.file.getFileHandle(file + ext, { create: true });
   const item = {
     summary: '',
     name: '',
@@ -297,7 +297,7 @@ async function performSearch() {
 
         <button class="save" @click="saveContent">保存</button>
       </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentDir" :currentItem="currentFileItem" />
+      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentHandle?.file" :currentItem="currentFileItem" />
       <div class="footer">
         <ul class="tag">
           <li v-for="tag in tags" :key="tag">{{ tag }}</li>

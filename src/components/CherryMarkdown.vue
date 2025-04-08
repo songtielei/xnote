@@ -340,34 +340,20 @@ export default {
                             if (this.isValidURL(src)) {
                                 return;
                             }
-                            let dir = getDirRoot().file;
-                            let fi;
-                            const pathArray = src.split('/')
-                            for (let i of pathArray) {
-                                if (!i) {
-                                    continue;
-                                }
-                                try {
-                                    if (i.indexOf('.') < 0) {
-                                        dir = await dir.getDirectoryHandle(i);
-                                    } else {
-                                        fi = await dir.getFileHandle(i);
-                                    }
-                                } catch (e) {
-                                    console.log(e);
-                                }
-                                
+
+                            const parts = src.split('/').filter(p => p); // 过滤空路径段
+                            let currentDir = getDirRoot();
+
+                            // 遍历目录层级
+                            for (let i = 0; i < parts.length - 1; i++) {
+                                currentDir = await currentDir.getDirectoryHandle(parts[i]);
                             }
-                            if (fi) {
-                                try {
-                                    const a = await fi.getFile();
-                                    const s = URL.createObjectURL(a);
-                                    img.src = s;
-                                } catch (e) {
-                                    console.log(e);
-                                }
-                                
-                            }
+                            // 获取文件句柄
+                            const fileName = parts[parts.length - 1];
+                            const fileHandle = await currentDir.getFileHandle(fileName);
+                            const a = await fileHandle.getFile();
+                            const s = URL.createObjectURL(a);
+                            img.src = s;
                         },
                         isValidURL(url) {
                             try {
@@ -386,8 +372,7 @@ export default {
          * @param {Object} file
          */
         async fileUpload(file, callback) {
-            //await this.dirRoot.file.getDirectoryHandle('media');
-            let assets = await this.dirRoot.file.getDirectoryHandle('assets', { create: true });
+            let assets = await this.getDirRoot().getDirectoryHandle('assets', { create: true });
             let fileDirectoryHandle = await assets.getDirectoryHandle(this.currentItem.name, { create: true });
             let fileHandle = await fileDirectoryHandle.getFileHandle(file.name, { create: true });
 
@@ -400,9 +385,10 @@ export default {
             } finally {
                 await writable.close();
             }
-            //let a = await fileHandle.getFile();
-            //let s = URL.createObjectURL(a);
-            callback('assets/' + this.currentItem.name + '/' + file.name);
+            let a = await fileHandle.getFile();
+            let s = URL.createObjectURL(a);
+            const pathname = 'assets/' + this.currentItem.name + '/' + file.name;
+            callback(pathname);
 
 
             //var formData = new FormData(); //新建一个表单数据,用于提交文件
@@ -452,43 +438,7 @@ export default {
                 [e]: src,
             }
         },
-        async changeURL(cc, src) {
-            await this._changeURL(cc, src);
-            
-        },
-        async _changeURL(cc, src) {
-            if (!src || this.isValidURL(src)) {
-                return src;
-            }
 
-            let sr = src;
-            let dir;
-            let fi;
-            const pathArray = src.split('/')
-            for (let i of pathArray) {
-                if (!i) {
-                    continue;
-                }
-                if (i.indexOf('.') < 0) {
-                    dir = await this.getDirRoot().file.getDirectoryHandle(i);
-                } else {
-                    fi = await dir.getFileHandle(i);
-                }
-            }
-            if (fi) {
-                const a = await fi.getFile();
-                const s = URL.createObjectURL(a);
-                sr = s;
-            }
-            cc.s = sr;
-        },
-        isValidURL(url) {
-            try {
-                return Boolean((new URL(url)));
-            } catch (_) {
-                return false;
-            }
-        },
         /**
          * 设置markdown编辑器内容，全部覆盖
          * @param {Object} content 要设置的内容
