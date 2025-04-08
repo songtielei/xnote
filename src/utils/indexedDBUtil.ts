@@ -68,6 +68,5 @@ export const getObjectStore = async (objectStoreName: string) => {
     if (!db) {
         await openDB(defaultDBName, 1, objectStoreName);
     }
-    console.log(db);
     return db.transaction(objectStoreName, 'readwrite').objectStore(objectStoreName);
 }
