@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
 import { ref, reactive, shallowRef, onMounted, watch } from 'vue'
-import Cherry from 'cherry-markdown'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import CherryMarkdown from './components/CherryMarkdown.vue'
 import Appearance from './components/ConfigAppearance.vue'
 import { parse, stringify } from './utils/front_matter'
 import moment from 'moment';
 
-import { Index, type IndexOptions } from 'flexsearch'
 import * as indexedDBUtil from './utils/indexedDBUtil'
 import { FlexSearchHelper } from './utils/flexsearch-helper'
+
+import Modal from './components/Modal.vue'
 
 
 //   const opfsRoot = await navigator.storage.getDirectory();
@@ -57,6 +56,11 @@ let tags = ref<any>([])
 let title = ref<string>('')
 let markdownContent = ref<string>('')
 let showAccount = ref(false);
+
+const modalRef = ref();
+const openSetting = () => {
+  modalRef.value.open();
+}
 
 async function content(fileItem) {
   currentFileItem = fileItem;
@@ -266,7 +270,7 @@ async function performSearch() {
       -->
       <div>标签</div>
       
-      <div class="setting" @click="() => { showPreference = true }">
+      <div class="setting" @click="openSetting">
         仓库
       </div>
     </div>
@@ -307,73 +311,17 @@ async function performSearch() {
     </div>
   </main>
 
-  <div class="modal" v-if="showPreference">
-    <div class="modal-backdrop"></div>
-    <div class="modal-body">
-      <div class="modal-head">
-        <button class="modal-close" @click="() => { showPreference = false}">close</button>
-      </div>
-      
-      <Appearance />
-    </div>
-  </div>
+  <Modal ref="modalRef">
+    <Appearance />
+  </Modal>
+
 </template>
 
 <style scoped lang="scss">
 :root {
   font-size: 1rem;
 }
-.modal {
-  //display: block;
-  z-index: 100;
-  .modal-backdrop {
-    z-index: 100;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  .modal-body {
-    z-index: 101;
-    position: fixed;
-    top: 10em;
-    bottom: 10em;
-    right: 30%;
-    left: 30%;
-    padding: 2em, 3em;
-    background-color: white;
-    overflow: auto;
-    border-radius: 5px;
-    .modal-head {
-      height: 39px;
-      border-bottom: 1px solid #000;
-      .modal-close {
-        cursor: pointer;
-        position: absolute;
-        top: 0.1em;
-        right: 0.1em;
-        padding: 0.3em;
-        font-size: 2em;
-        height: 1em;
-        width: 1em;
-        text-indent: 10em;
-        overflow: hidden;
-        border: 0;
 
-      }
-      .modal-close::after {
-        position: absolute;
-        line-height: 0.5;
-        top: 0.3em;
-        left: 0.2em;
-        text-indent: 0;
-        content: "\00D7"
-      }
-    }
-  }
-}
 * {
   box-sizing: border-box;
 }
@@ -413,6 +361,7 @@ main {
 
       >.setting {
         margin-top: auto;
+        cursor: pointer;
       }
     }
 
