@@ -57,9 +57,14 @@ let title = ref<string>('')
 let markdownContent = ref<string>('')
 let showAccount = ref(false);
 
-const modalRef = ref();
+const modalSettingRef = ref();
 const openSetting = () => {
-  modalRef.value.open();
+  modalSettingRef.value.open();
+}
+
+const modalConfirmRef = ref();
+const openConfirm = () => {
+  modalConfirmRef.value.open();
 }
 
 async function content(fileItem) {
@@ -89,6 +94,28 @@ async function handleScroll() {
 
 }
 
+async function verifyPermission(dirHandle: FileSystemDirectoryHandle, mode = ''): Promise<boolean> {
+  const options = { mode };
+  console.log(dirHandle);
+    // 检查当前权限状态
+    const query = await dirHandle.queryPermission(options).catch((error) => {
+      console.log('权限查询失败:', error);
+    });
+    console.log('权限查询结果:', query);
+    if (query === 'granted') {
+      return true;
+    }
+    const request = await dirHandle.requestPermission(options).catch((error) => {
+      console.log('权限请求失败:', error);
+    });
+    console.log('权限请求结果:', request);
+    if (request === 'granted') {
+      return true;
+    }
+
+  return false;
+}
+
 /**
  * 显示工作区内容
  *
@@ -96,11 +123,7 @@ async function handleScroll() {
  * @returns 无返回值
  */
 async function displayWorkspace(handle: FileSystemDirectoryHandle) {
-  const query = await (handle as any).queryPermission({})
-  if (query !== 'granted') {
-    const request = await (handle as any).requestPermission({})
 
-  }
   contentList.value.length = 0
 
   // TO FIX
@@ -145,8 +168,11 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
       }
     })
   }
-  currentFileItem = contentList.value[0]
-  content(currentFileItem)
+  if (contentList.value.length > 0) {
+    currentFileItem = contentList.value[0]
+    content(currentFileItem)
+  }
+
   
  
   contentList.value.forEach(item => {
@@ -216,17 +242,38 @@ function addTag(event) {
 let currentHandle = ref<indexedDBUtil.FileHandleDO>();
 
 onMounted(async () => {
-  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
-    if (!cursor.value.current) {
-      cursor.continue();
-    }
-    showPreference.value = false;
-    const f: indexedDBUtil.FileHandleDO = cursor.value;
-    currentHandle.value = f;
+
+  currentHandle.value = await indexedDBUtil.getCurrentFileHandle(indexedDBUtil.defaultObjectStoreName);
+  if (!currentHandle.value) {
+    return;
+  }
+  showPreference.value = false;
+  const hasPermission = await queryPermission(currentHandle.value.file);
+  if (!hasPermission) {
+    modalConfirmRef.value.open();
+    return;
+  } else {
     displayWorkspace(currentHandle.value.file);
-  })
+    getTreeData(currentHandle.value.file);
+  }
 
 })
+async function queryPermission(dirHandle: FileSystemDirectoryHandle, mode = 'readwrite'): Promise<boolean> {
+  const options = { mode };
+  console.log(dirHandle);
+    // 检查当前权限状态
+    const query = await dirHandle.queryPermission(options).catch((error) => {
+      console.log('权限查询失败:', error);
+    });
+    console.log('权限查询结果:', query);
+    if (query === 'granted') {
+      return true;
+    }
+
+  return false;
+}
+
+// 搜索
 const searchInput = ref('');
 const oldList = contentList.value;
 // 搜索
@@ -243,6 +290,80 @@ async function performSearch() {
     resultsSet.add(result.id);
   });
   contentList.value = contentList.value.filter(item => resultsSet.has(item.name));
+}
+
+// 笔记目录
+import Tree from './components/tree/Tree.vue'
+
+interface TreeNode {
+  id: string;
+  label: string;
+  dirHandle?: FileSystemDirectoryHandle;
+  expanded?: boolean;
+  children?: TreeNode[];
+}
+
+let treeData = ref([]);
+
+function onNodeToggle(node) {
+  console.log('Node toggled:', node);
+}
+
+function onNodeSelect(node) {
+  // 清除所有选中状态
+  const clearSelection = (nodes) => {
+    nodes.forEach(n => {
+      n.selected = false;
+      if (n.children) clearSelection(n.children);
+    });
+  };
+  
+  clearSelection(treeData.value);
+  
+  // 设置当前节点选中
+  node.selected = true;
+  console.log('Node selected:', node);
+  displayWorkspace(node.dirHandle);
+}
+
+const recursiveGetTreeData = async (directoryHandle: FileSystemDirectoryHandle): Promise<TreeNode> => {
+  const treeNode: TreeNode = {
+    id: directoryHandle.name,
+    label: directoryHandle.name,
+    dirHandle: directoryHandle,
+    expanded: false,
+    children: []
+  }
+  for await (const h of directoryHandle.values()) {
+    if (h.kind === 'file') {
+      continue;
+    }
+    const childTreeNode = await recursiveGetTreeData(h);
+    treeNode.children.push(childTreeNode);
+  }
+  return treeNode;
+}
+
+const getTreeData = async (handle: FileSystemDirectoryHandle) => {
+
+  const noteDirectoryHandle = await handle.getDirectoryHandle('note', { create: false });
+
+
+  const data = await recursiveGetTreeData(noteDirectoryHandle);
+  treeData.value = [data];
+  console.log('treeData')
+  console.log([data])
+  console.log(treeData.value);
+  
+}
+
+const confirmDirHandle = async () => {
+  const hasPermission = await verifyPermission(currentHandle.value.file, 'readwrite');
+  if (!hasPermission) {
+    return;
+  }
+  displayWorkspace(currentHandle.value.file);
+  modalConfirmRef.value.close();
 }
 
 </script>
@@ -274,15 +395,21 @@ async function performSearch() {
         仓库
       </div>
     </div>
-
     <div class="nav" @scroll="handleScroll">
       <div class="nav-search">
-        <input type="text" v-model="searchInput" @keyup.enter="performSearch" />
+        <input type="text" placeholder="搜索" v-model="searchInput" @keyup.enter="performSearch" />
       </div>
       <div class="nav-workspace">
-        <span class="workspace-item" @click="displayWorkspace((currentHandle as any).file)">
+        
+        <Tree :data="treeData" @node-toggle="onNodeToggle" @node-select="onNodeSelect">
+          <template #default="{ node }">
+            <span>{{ node.label }}</span>
+            <span v-if="node.selected" style="margin-left: 8px; color: green">✓</span>
+          </template>
+        </Tree>
+        <!-- <span class="workspace-item" @click="displayWorkspace((currentHandle as any).file)">
           {{ (currentHandle as any)?.file.name }}
-        </span>
+        </span> -->
         <button @click="newFile">新建</button>
       </div>
       <div class="item-list">
@@ -311,8 +438,11 @@ async function performSearch() {
     </div>
   </main>
 
-  <Modal ref="modalRef">
+  <Modal ref="modalSettingRef">
     <Appearance />
+  </Modal>
+  <Modal ref="modalConfirmRef">
+    <button @click="confirmDirHandle">确认</button>
   </Modal>
 
 </template>
@@ -375,17 +505,23 @@ main {
     overflow: hidden;
 
     //background-color: white;
-
+    >.nav-search {
+      >input {
+        width: 100%;
+      }
+    }
     >.nav-workspace {
-      display: flex; 
-      align-items: center;
+      position: relative;
       border-bottom: solid 1px; 
       height: 30px; 
-      padding: 0.2em 0.5em;
+      padding: 0;
       >span {
         flex: 1;
       }
       >button {
+        position: absolute;
+        top: 0px;
+        right: 0px;
         width: 70px;
       }
 

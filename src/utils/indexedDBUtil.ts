@@ -57,6 +57,27 @@ export const openCursor = async (objectStoreName: string, callback: (objectStore
 
 }
 
+export const getCurrentFileHandle = async (objectStoreName: string): Promise<FileHandleDO> => {
+    const objectStore: IDBObjectStore = await getObjectStore(objectStoreName);
+    const req: IDBRequest = objectStore.openCursor();
+
+    return new Promise<FileHandleDO>((resolve, reject) => {
+        req.onsuccess = (event: IDBRequestEventMap['success']) => {
+            const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
+            if (cursor && cursor.value.current) {
+                resolve(cursor.value);
+            } else {
+                console.log("没有更多记录了！");
+            }
+        }
+        req.onerror = (event: IDBRequestEventMap['error']) => {
+            console.error("打开游标时出错: ", (event.target as IDBRequest).error);
+            reject((event.target as IDBRequest).error);
+        }
+    })
+
+}
+
 export const closeDB = () => {
     if (db) {
         db.close();

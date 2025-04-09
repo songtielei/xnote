@@ -20,7 +20,7 @@ const open = () => {
 const close = () => {
     showPreference.value = false
 }
-defineExpose({ open})
+defineExpose({ open, close })
 </script>
 <style scoped lang="scss">
 .modal {
