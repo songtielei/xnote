@@ -1,6 +1,6 @@
 <template>
-  <input type="text" placeholder="Search..." />
-  <ul class="tree">
+  <input type="text" placeholder="Search..." v-model="selectDir" @click="showIndex = true" />
+  <ul class="tree" v-show="showIndex">
     <TreeNode v-for="node in $props.data" :key="node.id" :node="node" @toggle="onToggle" @select="onSelect" />
   </ul>
 </template>
@@ -25,11 +25,22 @@ function onToggle(node) {
 }
 
 function onSelect(node) {
+  selectDir.value = node.label;
+  showIndex.value = false;
   emit('node-select', node);
 }
+
+const selectDir = ref('')
+const showIndex = ref(false)
+
 </script>
 
 <style scoped lang="scss">
+input {
+  width: 200px;
+  padding: 5px;
+  margin-bottom: 10px;
+}
 .tree {
   position: relative;
   margin: 0 20px 0 0;
