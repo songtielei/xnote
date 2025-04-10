@@ -1,18 +1,26 @@
 <template>
-  <input type="text" placeholder="Search..." v-model="selectDir" @click="showIndex = true" />
+  <input type="text" placeholder="Search..." :value="selectDir" @click="showIndex = true" />
   <ul class="tree" v-show="showIndex">
     <TreeNode v-for="node in $props.data" :key="node.id" :node="node" @toggle="onToggle" @select="onSelect" />
   </ul>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import TreeNode from './TreeNode.vue';
 
 const props = defineProps({
   data: {
     type: Array,
     required: true
+  },
+  selectDir: {
+    type: String,
+    default: ''
+  },
+  showIndex: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -25,13 +33,8 @@ function onToggle(node) {
 }
 
 function onSelect(node) {
-  selectDir.value = node.label;
-  showIndex.value = false;
   emit('node-select', node);
 }
-
-const selectDir = ref('')
-const showIndex = ref(false)
 
 </script>
 

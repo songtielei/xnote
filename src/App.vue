@@ -210,7 +210,8 @@ function saveContent() {
 async function newFile() {
   const file = new Date().getTime();
   const ext = '.md';
-  const draftHandle = await currentHandle.value?.file.getFileHandle(file + ext, { create: true });
+  const noteDirectoryHandle = await currentHandle.value?.file.getDirectoryHandle('note', { create: true });
+  const draftHandle = await noteDirectoryHandle.getFileHandle(file + ext, { create: true });
   const item = {
     summary: '',
     name: '',
@@ -253,7 +254,8 @@ onMounted(async () => {
     modalConfirmRef.value.open();
     return;
   } else {
-    displayWorkspace(currentHandle.value.file);
+    const noteDirectoryHandle = await currentHandle.value.file.getDirectoryHandle('note', { create: true });
+    //displayWorkspace(noteDirectoryHandle);
     getTreeData(currentHandle.value.file);
   }
 
@@ -304,6 +306,8 @@ interface TreeNode {
 }
 
 let treeData = ref([]);
+const selectDir = ref('')
+const showIndex = ref(false)
 
 function onNodeToggle(node) {
   console.log('Node toggled:', node);
@@ -323,6 +327,8 @@ function onNodeSelect(node) {
   // 设置当前节点选中
   node.selected = true;
   console.log('Node selected:', node);
+  selectDir.value = node.label;
+  showIndex.value = false;
   displayWorkspace(node.dirHandle);
 }
 
@@ -345,15 +351,11 @@ const recursiveGetTreeData = async (directoryHandle: FileSystemDirectoryHandle):
 }
 
 const getTreeData = async (handle: FileSystemDirectoryHandle) => {
-
   const noteDirectoryHandle = await handle.getDirectoryHandle('note', { create: false });
-
-
   const data = await recursiveGetTreeData(noteDirectoryHandle);
+  data.label = currentHandle.value?.file.name;
   treeData.value = [data];
-  console.log('treeData')
-  console.log([data])
-  console.log(treeData.value);
+  onNodeSelect(treeData.value[0]);
   
 }
 
@@ -362,7 +364,8 @@ const confirmDirHandle = async () => {
   if (!hasPermission) {
     return;
   }
-  displayWorkspace(currentHandle.value.file);
+  const noteDirectoryHandle = await currentHandle.value.file.getDirectoryHandle('note', { create: true });
+  displayWorkspace(noteDirectoryHandle);
   modalConfirmRef.value.close();
 }
 
@@ -401,7 +404,7 @@ const confirmDirHandle = async () => {
       </div>
       <div class="nav-workspace">
         
-        <Tree :data="treeData" @node-toggle="onNodeToggle" @node-select="onNodeSelect">
+        <Tree :data="treeData" :showIndex="showIndex" :select-dir="selectDir" @node-toggle="onNodeToggle" @node-select="onNodeSelect">
           <template #default="{ node }">
             <span>{{ node.label }}</span>
             <span v-if="node.selected" style="margin-left: 8px; color: green">✓</span>
