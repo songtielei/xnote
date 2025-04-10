@@ -450,6 +450,7 @@ const confirmDirHandle = async () => {
 <style scoped lang="scss">
 :root {
   font-size: 1rem;
+  --line-height: 1em;
 }
 
 * {
@@ -531,20 +532,19 @@ main {
       overflow: auto;
       
       .item {
-        margin: 4px;
+        margin: 0;
         border-bottom: solid 1px;
-        height: 80px;
+        height: 100px;
         padding: 5px 10px;
         .title {
-          box-sizing: border-box;
-          padding: 5px 10px;
+          padding: 0 10px 0 10px;
           font-size: 1em;
-          height: 1em;
+          height: 1.6em;
           overflow: hidden;
         }
         .summary {
           font-size: 12px;
-          height: 60%;
+          height: 4em;
         }
         .date {
           font-size: 12px;
