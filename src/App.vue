@@ -191,22 +191,6 @@ function mdChange(mdHtml, mdTxt, mdContent) {
   currentFileItem.parsedMarkdown._content = mdContent;
 }
 
-//TODO category
-function saveContent() {
-  const fileHandle = currentFileItem.handle;
-  const c = currentFileItem.parsedMarkdown._content
-  currentFileItem.parsedMarkdown.tags = tags.value
-  currentFileItem.parsedMarkdown.title = title.value
-  if (!currentFileItem.parsedMarkdown.date) {
-    currentFileItem.parsedMarkdown.date = new Date()
-  }
-  currentFileItem.parsedMarkdown.updated = new Date()
-  const content = stringify(currentFileItem.parsedMarkdown, { mode: '', separator: '---', prefixSeparator: true });
-  currentFileItem.parsedMarkdown._content = c
-  markdownContent.value = currentFileItem.parsedMarkdown._content;
-  writeFile(fileHandle, content);
-}
-
 async function newFile() {
   const file = new Date().getTime();
   const ext = '.md';
@@ -231,10 +215,7 @@ async function newFile() {
 
   content(item)
 }
-function addTag(event) {
-  tags.value.push(event.target.value)
-  event.target.value = ''
-}
+
 
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
