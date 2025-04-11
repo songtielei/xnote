@@ -1,5 +1,6 @@
 export interface FileItem {
     id: number
+    path: string
     name: string
     url: string
     title: string
@@ -7,5 +8,5 @@ export interface FileItem {
     tags: string[]
     updated: Date
     date: Date
-    handle: FileSystemDirectoryHandle
+    handle: FileSystemFileHandle
 }

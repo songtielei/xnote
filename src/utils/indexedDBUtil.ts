@@ -111,10 +111,10 @@ export const getStorageArray = async (): Promise<Storage[]> => {
 }
 
 // fileItem
-export const getNoteByPathAndName = async (path: string, name: string): Promise<Storage> => {
+export const getNoteByPathAndName = async (path: string, name: string): Promise<FileItem> => {
     const objectStore: IDBObjectStore = await getObjectStore(storageObjectStore);
     const req: IDBRequest = objectStore.index('idx_path_name').get([path, name]);
-    return new Promise<Storage>((resolve, reject) => {
+    return new Promise<FileItem>((resolve, reject) => {
         req.onsuccess = (event: IDBRequestEventMap['success']) => {
             resolve((event.target as IDBRequest).result);
         }

@@ -8,6 +8,7 @@ import moment from 'moment';
 
 import * as indexedDBUtil from './utils/indexedDBUtil'
 import { FlexSearchHelper } from './utils/flexsearch-helper'
+import Content from './components/content'
 
 import Modal from './components/Modal.vue'
 
@@ -67,17 +68,7 @@ const openConfirm = () => {
   modalConfirmRef.value.open();
 }
 
-async function content(fileItem) {
-  currentFileItem = fileItem;
-  if (!currentFileItem.parsedMarkdown.tags) {
-    tags.value = []
-  } else {
-    tags.value = currentFileItem.parsedMarkdown.tags
-  }
-  
-  title.value = currentFileItem.parsedMarkdown.title
-  markdownContent.value = currentFileItem.parsedMarkdown._content
-}
+
 
 // write file
 async function writeFile(fileHandle, contents) {
@@ -170,7 +161,7 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
   }
   if (contentList.value.length > 0) {
     currentFileItem = contentList.value[0]
-    content(currentFileItem)
+    //content(currentFileItem)
   }
 
   
@@ -187,60 +178,30 @@ async function displayWorkspace(handle: FileSystemDirectoryHandle) {
 
 const contentSearch = new FlexSearchHelper<Content>(['name', 'content']);
 
-function mdChange(mdHtml, mdTxt, mdContent) {
-  currentFileItem.parsedMarkdown._content = mdContent;
-}
-
-async function newFile() {
-  const file = new Date().getTime();
-  const ext = '.md';
-  const noteDirectoryHandle = await currentHandle.value?.file.getDirectoryHandle('note', { create: true });
-  const draftHandle = await noteDirectoryHandle.getFileHandle(file + ext, { create: true });
-  const item = {
-    summary: '',
-    name: '',
-    ext: '.md',
-    get fileName() {
-      return this.name + this.ext;
-    },
-    parsedMarkdown: {},
-    handle: draftHandle
-  }
-  
-  currentFileItem = item
-  tags.value = []
-  title.value = ''
-  saveContent()
-  contentList.value.unshift(item)
-
-  content(item)
-}
 
 
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
 // 如果有则进入首页
 
-let currentHandle = ref<indexedDBUtil.FileHandleDO>();
+const activeStorage = ref<indexedDBUtil.Storage>();
 
 onMounted(async () => {
 
-  currentHandle.value = await indexedDBUtil.getCurrentFileHandle(indexedDBUtil.defaultObjectStoreName);
-  if (!currentHandle.value) {
+  activeStorage.value = await indexedDBUtil.getActiveStorage();
+  if (!activeStorage.value) {
     return;
   }
   showPreference.value = false;
-  const hasPermission = await queryPermission(currentHandle.value.file);
+  const hasPermission = await queryPermission(activeStorage.value.file);
   if (!hasPermission) {
     modalConfirmRef.value.open();
     return;
   } else {
-    const noteDirectoryHandle = await currentHandle.value.file.getDirectoryHandle('note', { create: true });
-    //displayWorkspace(noteDirectoryHandle);
-    getTreeData(currentHandle.value.file);
+    getTreeData(activeStorage.value.file);
   }
-
 })
+
 async function queryPermission(dirHandle: FileSystemDirectoryHandle, mode = 'readwrite'): Promise<boolean> {
   const options = { mode };
   console.log(dirHandle);
@@ -281,6 +242,7 @@ import Tree from './components/tree/Tree.vue'
 interface TreeNode {
   id: string;
   label: string;
+  path: string;
   dirHandle?: FileSystemDirectoryHandle;
   expanded?: boolean;
   children?: TreeNode[];
@@ -311,12 +273,15 @@ function onNodeSelect(node) {
   selectDir.value = node.label;
   showIndex.value = false;
   displayWorkspace(node.dirHandle);
+  path.value = node.path;
+  name.value = node.label;
 }
 
-const recursiveGetTreeData = async (directoryHandle: FileSystemDirectoryHandle): Promise<TreeNode> => {
+const recursiveGetTreeData = async (parentPath: string, directoryHandle: FileSystemDirectoryHandle): Promise<TreeNode> => {
   const treeNode: TreeNode = {
     id: directoryHandle.name,
     label: directoryHandle.name,
+    path: parentPath + directoryHandle.name,
     dirHandle: directoryHandle,
     expanded: false,
     children: []
@@ -325,7 +290,7 @@ const recursiveGetTreeData = async (directoryHandle: FileSystemDirectoryHandle):
     if (h.kind === 'file') {
       continue;
     }
-    const childTreeNode = await recursiveGetTreeData(h);
+    const childTreeNode = await recursiveGetTreeData(treeNode.path + '/', h);
     treeNode.children.push(childTreeNode);
   }
   return treeNode;
@@ -333,23 +298,27 @@ const recursiveGetTreeData = async (directoryHandle: FileSystemDirectoryHandle):
 
 const getTreeData = async (handle: FileSystemDirectoryHandle) => {
   const noteDirectoryHandle = await handle.getDirectoryHandle('note', { create: false });
-  const data = await recursiveGetTreeData(noteDirectoryHandle);
-  data.label = currentHandle.value?.file.name;
+  const data = await recursiveGetTreeData('', noteDirectoryHandle);
+  data.label = activeStorage.value?.file.name;
   treeData.value = [data];
   onNodeSelect(treeData.value[0]);
   
 }
 
 const confirmDirHandle = async () => {
-  const hasPermission = await verifyPermission(currentHandle.value.file, 'readwrite');
+  const hasPermission = await verifyPermission(activeStorage.value.file, 'readwrite');
   if (!hasPermission) {
     return;
   }
-  const noteDirectoryHandle = await currentHandle.value.file.getDirectoryHandle('note', { create: true });
+  const noteDirectoryHandle = await activeStorage.value.file.getDirectoryHandle('note', { create: true });
   displayWorkspace(noteDirectoryHandle);
   modalConfirmRef.value.close();
 }
-
+const path = ref('');
+const name = ref('');
+const updateList = async () => {
+  // 刷新目录
+}
 </script>
 
 <template>
@@ -406,20 +375,7 @@ const confirmDirHandle = async () => {
 
 
     </div>
-    <div class="content">
-      <div class="contentHeader">
-        <input class="title" type="text" placeholder="标题" v-model="title"/>
-
-        <button class="save" @click="saveContent">保存</button>
-      </div>
-      <CherryMarkdown :tocVisiable="false" :value="markdownContent" v-on:mdChange="mdChange" :dirRoot="currentHandle?.file" :currentItem="currentFileItem" />
-      <div class="footer">
-        <ul class="tag">
-          <li v-for="tag in tags" :key="tag">{{ tag }}</li>
-        </ul>
-        <input class="addTag" type="text" placeholder="添加标签" @keyup.enter="addTag" />
-      </div>
-    </div>
+    <Content :path="path" :name="name" @update:list="updateList"></Content>
   </main>
 
   <Modal ref="modalSettingRef">
