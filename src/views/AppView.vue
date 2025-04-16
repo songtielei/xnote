@@ -51,6 +51,8 @@ const updateList = () => {
 
 const selectDir = async (treeNode: TreeNode) => {
   const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, null);
+  console.log('select dir')
+  console.log(noteList);
   contentList.value.push(...noteList.data);
   currentFileItem.value = contentList.value[0];
   dataLoaded.value = true;
@@ -96,7 +98,7 @@ const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirect
       title: fileItem.title,
       content: parsedMarkdown._content
     }
-    console.log(content);
+    console.log('添加到搜索索引中...')
     contentSearch.add(content.id, content);
 
   }
@@ -129,9 +131,7 @@ async function performSearch() {
   results.forEach(result => {
     resultsSet.add(result.id);
   });
-  console.log(resultsSet);
-  contentList.value = contentList.value.filter(item => {console.log(item); resultsSet.has(item.id)});
-  console.log(contentList.value);
+  contentList.value = contentList.value.filter(item => resultsSet.has(item.id));
 }
 
 /**
@@ -143,9 +143,9 @@ async function performSearch() {
 async function addFileItemToDB(handle: FileSystemDirectoryHandle) {
   const contentList = await recursiveGetTreeData(handle.name, handle);
   const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.noteObjectStore);
+  objectStore.clear();
   console.log('开始添加数据到indexedDB...')
   contentList.forEach((item) => {
-    console.log(item);
     const r = objectStore.add(item);
     r.onerror = (err) => {
       console.log('添加失败', err);
@@ -211,7 +211,7 @@ onBeforeMount(async () => {
   if (!activeStorage.value) {
     return;
   }
-  storageLoaded.value = true;
+
   const hasPermission = await queryPermission(activeStorage.value.file);
   if (!hasPermission) {
     openConfirm();
@@ -219,6 +219,8 @@ onBeforeMount(async () => {
   }
   const noteDirectoryHandle = await activeStorage.value?.file.getDirectoryHandle(workspace, { create: true });
   await addFileItemToDB(noteDirectoryHandle);
+  // 全部加载完成后 再加载 dirtree
+  storageLoaded.value = true;
 })
 </script>
 <style scoped lang="scss">
