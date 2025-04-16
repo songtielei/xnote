@@ -6,7 +6,6 @@
                 <button class="modal-close" @click="close">close</button>
             </div>
             <slot></slot>
-            <Appearance />
         </div>
     </div>
 </template>

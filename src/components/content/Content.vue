@@ -6,7 +6,7 @@
             <button class="save" @click="saveContent">保存</button>
         </div>
         <CherryMarkdown :tocVisiable="false" :value="(parsedMarkdown as any)._content" v-on:mdChange="mdChange"
-            :dirRoot="activeStorage" :currentItem="currentFileItem" />
+            :dirRoot="activeStorage" :currentItem="props.currentFileItem" />
         <div class="footer">
             <ul class="tag">
                 <li v-for="tag in (parsedMarkdown as any).tags" :key="tag">{{ tag }}</li>
@@ -23,28 +23,35 @@ import type { FileItem } from './types'
 import { parse, stringify } from '../../utils/front_matter'
 
 const props = defineProps({
-    path: {
-        type: String,
-        default: ''
-    },
-    name: {
-        type: String,
-        default: ''
+    currentFileItem: {
+        type: Object as () => FileItem,
     }
 })
+watch(() => props.currentFileItem, async (newValue) => {
+    console.log('多个 props 变化:', newValue);
+    if (!newValue) {
+        return;
+    }
+    const file = await newValue.handle.getFile()
+    const text = await file.text()
+    parsedMarkdown.value = parse(text)
 
+});
 //TODO category
 function saveContent() {
-    (parsedMarkdown.value as any).tags = currentFileItem.value?.tags;
-    (parsedMarkdown.value as any).title = currentFileItem.value?.title;
+    if (!props.currentFileItem) {
+        return;
+    }
+    (parsedMarkdown.value as any).tags = props.currentFileItem.tags;
+    (parsedMarkdown.value as any).title = props.currentFileItem.title;
     if (!(parsedMarkdown.value as any).date) {
         (parsedMarkdown.value as any).date = new Date()
     }
     (parsedMarkdown.value as any).updated = new Date()
     const content = stringify(parsedMarkdown.value, { mode: '', separator: '---', prefixSeparator: true });
 
-    writeFile(currentFileItem.value?.handle, content);
-    emit('update:list', props.path, props.name);
+    writeFile(props.currentFileItem.handle, content);
+    emit('update:list');
 }
 
 // write file
@@ -68,18 +75,77 @@ function addTag(event) {
 
 const parsedMarkdown = ref({});
 const activeStorage = ref<FileSystemDirectoryHandle>();
-const currentFileItem = ref<FileItem>();
 
 const emit = defineEmits(['update:list'])
 
 onMounted(async () => {
-    currentFileItem.value = await indexedDBUtil.getNoteByPathAndName(props.path, props.name);
-    const file = await currentFileItem.value.handle.getFile()
-    const text = await file.text()
-    parsedMarkdown.value = parse(text)
-
     const storage = indexedDBUtil.getActiveStorage();
     activeStorage.value = (await storage).file;
+    const file = await props.currentFileItem.handle.getFile()
+    const text = await file.text()
+    parsedMarkdown.value = parse(text)
 })
 </script>
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.content {
+    margin: 4px;
+    border-radius: 5px;
+    border: solid 1px;
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+
+    //padding-top: 50px;
+    //background-color: #f5f7f9;
+    >.contentHeader {
+        //position: relative; 
+        //top: 0px; 
+        //width: 100%; 
+        display: flex;
+        align-items: center;
+        border-bottom: solid 1px;
+        height: 30px;
+        padding: 0.2em 0.5em;
+
+        >.title {
+            width: 300px;
+            height: 20px;
+        }
+
+
+        >.save {
+            margin-left: auto;
+        }
+    }
+
+    >.footer {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0.2em 0.5em;
+
+        >.tag {
+
+            display: inline-block;
+            margin: 0px;
+            padding: 0px;
+
+            >li {
+                display: inline-block;
+                border: solid 1px;
+                margin-right: 3px;
+
+                padding: 0px 10px;
+                border-radius: 3px;
+            }
+        }
+
+        >.addTag {
+            width: 60px;
+            height: 20px;
+        }
+    }
+}
+</style>

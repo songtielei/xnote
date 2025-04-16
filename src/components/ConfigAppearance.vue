@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import * as indexedDBUtil from '../utils/indexedDBUtil'
+import type { CustomStorage } from '@/utils/indexedDBUtil'
+import * as indexedDBUtil from '@/utils/indexedDBUtil'
 
-const workspaceList = ref<indexedDBUtil.FileHandleDO[]>([])
+const storageList = ref<CustomStorage[]>([])
 let fileHandle: FileSystemDirectoryHandle
 
 // file picker
 async function getFileHandle() {
   fileHandle = await (window as any).showDirectoryPicker();
   let exist = false;
-  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
+  indexedDBUtil.openCursor(indexedDBUtil.storageObjectStore, (objectStore, cursor) => {
     if (cursor) {
       if (cursor.value.file.name === fileHandle.name) {
         console.log('目录存在')
@@ -20,50 +21,51 @@ async function getFileHandle() {
   })
 
   if (!exist) {
-    const f: indexedDBUtil.FileHandleDO = {
-      id: new Date().getTime(),
-      current: false,
+    const f: CustomStorage = {
+      id: Date.now(),
+      active: 'false',
       file: fileHandle
     }
     saveHandle(f)
-    workspaceList.value.push(f);
+    storageList.value.push(f);
   }
 
 }
 
-function saveHandle(handle: indexedDBUtil.FileHandleDO) {
-  indexedDBUtil.getObjectStore(indexedDBUtil.defaultObjectStoreName).add(handle);
+async function saveHandle (handle: CustomStorage) {
+  const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.storageObjectStore);
+  objectStore.add(handle, handle.id);
 }
 
 function restoreHandle() {
-  workspaceList.value.length = 0;
-  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
+  storageList.value.length = 0;
+  indexedDBUtil.openCursor(indexedDBUtil.storageObjectStore, (objectStore, cursor) => {
     if (cursor) {
-      workspaceList.value.push(cursor.value);
-      cursor.continue();
+      storageList.value.push(cursor.value);
     } else {
       console.log("没有更多记录了！");
     }
   })
 }
 
-function deleteItem(id: number) {
-  indexedDBUtil.getObjectStore(indexedDBUtil.defaultObjectStoreName).delete(id);
-  workspaceList.value = workspaceList.value.filter(item => item.id !== id)
+async function deleteItem(id: number) {
+  const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.storageObjectStore);
+  objectStore.delete(id);
+  storageList.value = storageList.value.filter(item => item.id !== id)
 }
 
 function useItem(id: number) {
-  indexedDBUtil.openCursor(indexedDBUtil.defaultObjectStoreName, (objectStore, cursor) => {
+  indexedDBUtil.openCursor(indexedDBUtil.storageObjectStore, (objectStore, cursor) => {
     if (cursor) {
-      const f: indexedDBUtil.FileHandleDO = cursor.value;
+      const f: CustomStorage = cursor.value;
       if (f.id === id) {
-        f.current = true
+        f.active = 'true'
       } else {
-        f.current = false
+        f.active = 'false'
       }
-      objectStore.put(f)
+      objectStore.put(f, f.id)
       // 执行下一条数据的 req.onsuccess
-      cursor.continue();
+      // cursor.continue();
     } else {
       console.log("没有更多记录了！");
       restoreHandle();
@@ -89,9 +91,9 @@ onUnmounted(() => {
       <div class="operate">
         <button class="btn btn-dark mr-2" @click="getFileHandle">选择文件</button>
       </div>
-      <div class="workspace-item" v-for="item in workspaceList" :key="item.id">
+      <div class="workspace-item" v-for="item in storageList" :key="item.id">
         <span>{{ item.file.name }} </span>
-        <button @click="useItem(item.id)" :disabled="item.current">使用</button>
+        <button @click="useItem(item.id)" :disabled="item.active === 'true'">使用</button>
         <button @click="deleteItem(item.id)">删除</button>
       </div>
     </div>
