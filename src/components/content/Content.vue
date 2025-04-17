@@ -42,15 +42,15 @@ function saveContent() {
     if (!props.currentFileItem) {
         return;
     }
-    (parsedMarkdown.value as any).tags = props.currentFileItem.tags;
-    (parsedMarkdown.value as any).title = props.currentFileItem.title;
     if (!(parsedMarkdown.value as any).date) {
         (parsedMarkdown.value as any).date = new Date()
     }
     (parsedMarkdown.value as any).updated = new Date()
-    const content = stringify(parsedMarkdown.value, { mode: '', separator: '---', prefixSeparator: true });
+    const temp = Object.assign({}, parsedMarkdown.value);
+    const content = stringify(temp, { mode: '', separator: '---', prefixSeparator: true });
 
     writeFile(props.currentFileItem.handle, content);
+    //console.log(content)
     emit('update:list');
 }
 

@@ -11,7 +11,7 @@
       <div class="item" v-for="item in contentList" :key="item.name" @click="content(item)">
         <div class="title">{{ item.title }}</div>
         <div class="summary">{{ item.summary }}</div>
-        <div class="date">{{ moment(item.date).format('YYYY-MM-DD') }}</div>
+        <div class="date">{{ moment(item.updated).format('YYYY-MM-DD') }}</div>
       </div>
     </div>
 
@@ -45,7 +45,7 @@ const currentFileItem = ref<FileItem>();
 const contentList = ref<FileItem[]>([]);
 
 const updateList = () => {
-  contentList.value = [];
+  console.log('update list')
 }
 
 
