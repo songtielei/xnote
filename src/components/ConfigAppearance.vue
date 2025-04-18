@@ -34,7 +34,7 @@ async function getFileHandle() {
 
 async function saveHandle (handle: CustomStorage) {
   const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.storageObjectStore);
-  objectStore.add(handle, handle.id);
+  objectStore.add(handle);
 }
 
 function restoreHandle() {
@@ -63,7 +63,7 @@ function useItem(id: number) {
       } else {
         f.active = 'false'
       }
-      objectStore.put(f, f.id)
+      objectStore.put(f)
       // 执行下一条数据的 req.onsuccess
       // cursor.continue();
     } else {

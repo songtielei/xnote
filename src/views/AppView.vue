@@ -50,9 +50,8 @@ const updateList = () => {
 
 
 const selectDir = async (treeNode: TreeNode) => {
-  const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, null);
-  console.log('select dir')
-  console.log(noteList);
+  const now = new Date(); // 当前时间
+  const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, now);
   contentList.value.push(...noteList.data);
   currentFileItem.value = contentList.value[0];
   dataLoaded.value = true;

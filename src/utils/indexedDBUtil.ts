@@ -2,7 +2,9 @@ import type { FileItem } from '../components/content/types'
 
 const dbName = 'xnote'
 
-let db: IDBDatabase | null = null
+export const storageObjectStore = 'storage'
+export const noteObjectStore = 'note'
+
 const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
     const req: IDBOpenDBRequest = indexedDB.open(dbName, version)
 
@@ -11,13 +13,16 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
         // 这通常用于设置数据库结构或升级数据库版本。
         req.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             const db = (event.target as IDBOpenDBRequest).result
+            db.deleteObjectStore(noteObjectStore)
+
+            db.deleteObjectStore(storageObjectStore)
             db.createObjectStore(storageObjectStore, {
                 keyPath: 'id'
             }).createIndex('idx_active', 'active', { unique: false })
             const objectStore = db.createObjectStore(noteObjectStore, {
                 keyPath: 'id'
             })
-            objectStore.createIndex('idx_path', 'updated', { unique: false }) // 不直接使用path查询 在循环中过滤
+            objectStore.createIndex('idx_path_updated', ['path', 'updated'], { unique: false })
             objectStore.createIndex('idx_path_name', ['path', 'name'], { unique: false })
         }
         // 事件在数据库成功打开时触发。
@@ -32,9 +37,7 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
         }
     })
 }
-
-export const storageObjectStore = 'storage'
-export const noteObjectStore = 'note'
+const db: IDBDatabase = await openDB(dbName, 7)
 
 export interface CustomStorage {
     id?: number
@@ -75,10 +78,8 @@ export const closeDB = () => {
 }
 
 export const getObjectStore = async (objectStoreName: string) => {
-    if (!db) {
-        db = await openDB(dbName, 1)
-    }
-    return db.transaction(objectStoreName, 'readwrite').objectStore(objectStoreName)
+    const transaction: IDBTransaction = db.transaction(objectStoreName, 'readwrite');
+    return transaction.objectStore(objectStoreName)
 }
 
 // storage
@@ -137,19 +138,16 @@ export const getNoteByPath = async (
     pageSize: number = 5000
 ): Promise<{}> => {
     const objectStore: IDBObjectStore = await getObjectStore(noteObjectStore)
-    const index: IDBIndex = objectStore.index('idx_path')
-    const range = lastUpdated ? IDBKeyRange.lowerBound(lastUpdated, true) : null
+    const index: IDBIndex = objectStore.index('idx_path_updated')
+    const range = lastUpdated ? IDBKeyRange.bound([path], [path, lastUpdated], false, true) : null
     const result: FileItem[] = []
-    const req: IDBRequest<IDBCursorWithValue | null> = index.openCursor(range, 'next')
+    const req: IDBRequest<IDBCursorWithValue | null> = index.openCursor(range, 'prev')
 
     const cursor = await new Promise<IDBCursorWithValue>((resolve, reject) => {
         req.onsuccess = (event: IDBRequestEventMap['success']) => {
             const cursor: IDBCursorWithValue = (event.target as IDBRequest).result
             if (cursor && result.length < pageSize) {
-                const f = cursor.value as FileItem;
-                if (f.path === path) {
-                    result.push(cursor.value)
-                }
+                result.push(cursor.value)
                 cursor.continue()
             }
 
