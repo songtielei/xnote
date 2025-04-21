@@ -346,7 +346,7 @@ export default {
 
                             // 遍历目录层级
                             for (let i = 0; i < parts.length - 1; i++) {
-                                currentDir = await currentDir.getDirectoryHandle(parts[i]);
+                                currentDir = await currentDir.getDirectoryHandle(parts[i], { create: true });
                             }
                             // 获取文件句柄
                             const fileName = parts[parts.length - 1];
