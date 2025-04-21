@@ -35,6 +35,7 @@ import Modal from '@/components/Modal.vue'
 import moment from 'moment';
 import type { FileItem } from '@/components/content/types'
 import { parse, stringify } from '@/utils/front_matter'
+import { saveItem } from '@/utils/fileItemUtil'
 
 const route = useRoute();
 const storageLoaded = ref(false);
@@ -50,8 +51,9 @@ const updateList = (fileItem: FileItem) => {
   contentList.value.unshift(fileItem);
 }
 
-
+let path;
 const selectDir = async (treeNode: TreeNode) => {
+  path = treeNode.path;
   const now = new Date(); // 当前时间
   const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, now);
   contentList.value.push(...noteList.data);
@@ -155,8 +157,32 @@ async function addFileItemToDB(handle: FileSystemDirectoryHandle) {
   console.log('添加数据到indexedDB完成...')
 }
 
-const newFile = () => {
+const newFile = async () => {
 
+  const parts = path.split('/').filter(p => p); // 过滤空路径段
+  // 遍历目录层级
+  let currentDir = (activeStorage.value as any).file;
+  for (let i = 0; i < parts.length; i++) {
+      currentDir = await currentDir.getDirectoryHandle(parts[i]);
+  }
+  const name = Date.now();
+  const ext = '.md';
+  const draftHandle = await currentDir.getFileHandle(name + ext, { create: true });
+
+  const fileItem: FileItem = {
+    id: name,
+    name: name.toString(),
+    path: path,
+    title: '新建文件',
+    summary: '',
+    url: '',
+    tags: [],
+    updated: new Date(),
+    date: new Date(),
+    handle: draftHandle,
+  }
+  saveItem(fileItem, '');
+  contentList.value.unshift(fileItem);
 }
 // 进入页面时检测是否有默认的文件夹
 // 如果没有则打开设置页面 新建或选择文件夹
