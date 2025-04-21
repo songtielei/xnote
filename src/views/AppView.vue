@@ -44,8 +44,10 @@ const workspace = route.path.split('/')[1];
 const currentFileItem = ref<FileItem>();
 const contentList = ref<FileItem[]>([]);
 
-const updateList = () => {
+const updateList = (fileItem: FileItem) => {
   console.log('update list')
+  contentList.value = contentList.value.filter(item => item.id !== fileItem.id);
+  contentList.value.unshift(fileItem);
 }
 
 

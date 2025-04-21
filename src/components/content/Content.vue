@@ -16,17 +16,22 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, toRaw } from 'vue';
 import CherryMarkdown from '../CherryMarkdown.vue';
 import * as indexedDBUtil from '../../utils/indexedDBUtil'
 import type { FileItem } from './types'
 import { parse, stringify } from '../../utils/front_matter'
+import { saveItem } from '@/utils/fileItemUtil'
 
 const props = defineProps({
     currentFileItem: {
         type: Object as () => FileItem,
+        required: true
     }
 })
+
+const parsedMarkdown = ref<any>({});
+
 watch(() => props.currentFileItem, async (newValue) => {
     console.log('多个 props 变化:', newValue);
     if (!newValue) {
@@ -36,32 +41,17 @@ watch(() => props.currentFileItem, async (newValue) => {
     const text = await file.text()
     parsedMarkdown.value = parse(text)
 
-});
+}, { immediate: true });
 //TODO category
 function saveContent() {
-    if (!props.currentFileItem) {
-        return;
-    }
-    if (!(parsedMarkdown.value as any).date) {
-        (parsedMarkdown.value as any).date = new Date()
-    }
-    (parsedMarkdown.value as any).updated = new Date()
-    const temp = Object.assign({}, parsedMarkdown.value);
-    const content = stringify(temp, { mode: '', separator: '---', prefixSeparator: true });
-
-    writeFile(props.currentFileItem.handle, content);
-    //console.log(content)
-    emit('update:list');
-}
-
-// write file
-async function writeFile(fileHandle, contents) {
-    // Create a FileSystemWritableFileStream to write to.
-    const writable = await fileHandle.createWritable()
-    // Write the contents of the file to the stream.
-    await writable.write(contents)
-    // Close the file and write the contents to disk.
-    await writable.close()
+    const fileItem: FileItem = Object.assign({}, props.currentFileItem);
+    const rawParsedMarkdown = toRaw(parsedMarkdown.value);
+    fileItem.title = (rawParsedMarkdown as any).title;
+    fileItem.tags = (rawParsedMarkdown as any).tags;
+    fileItem.date = fileItem.date || new Date();
+    fileItem.updated = new Date();
+    saveItem(fileItem, parsedMarkdown.value._content);
+    emit('update:list', fileItem);
 }
 
 function mdChange(mdHtml, mdTxt, mdContent) {
@@ -69,11 +59,13 @@ function mdChange(mdHtml, mdTxt, mdContent) {
 }
 
 function addTag(event) {
-    (parsedMarkdown as any).tags.value.push(event.target.value)
+    if (!(parsedMarkdown as any).value.tags) {
+        (parsedMarkdown as any).value.tags = []
+    }
+    (parsedMarkdown as any).value.tags.push(event.target.value)
     event.target.value = ''
 }
 
-const parsedMarkdown = ref({});
 const activeStorage = ref<FileSystemDirectoryHandle>();
 
 const emit = defineEmits(['update:list'])
@@ -81,9 +73,6 @@ const emit = defineEmits(['update:list'])
 onMounted(async () => {
     const storage = indexedDBUtil.getActiveStorage();
     activeStorage.value = (await storage).file;
-    const file = await props.currentFileItem.handle.getFile()
-    const text = await file.text()
-    parsedMarkdown.value = parse(text)
 })
 </script>
 <style scoped lang="scss">
