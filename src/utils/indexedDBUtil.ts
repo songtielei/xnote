@@ -13,14 +13,10 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
         // 这通常用于设置数据库结构或升级数据库版本。
         req.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             const db = (event.target as IDBOpenDBRequest).result
-            let transaction: IDBTransaction = db.transaction(noteObjectStore, 'readwrite');
-            let o = transaction.objectStore(noteObjectStore)
-            if (o) {
+            if (db.objectStoreNames.contains(noteObjectStore)) {
                 db.deleteObjectStore(noteObjectStore);
             }
-            transaction = db.transaction(storageObjectStore, 'readwrite');
-            o = transaction.objectStore(storageObjectStore)
-            if (o) {
+            if (db.objectStoreNames.contains(storageObjectStore)) {
                 db.deleteObjectStore(storageObjectStore);
             }
             db.createObjectStore(storageObjectStore, {
