@@ -48,13 +48,14 @@ function restoreHandle() {
   })
 }
 
-async function deleteItem(id: number) {
+async function deleteItem(id: number | undefined) {
   const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.storageObjectStore);
+  if (!id) return;
   objectStore.delete(id);
   storageList.value = storageList.value.filter(item => item.id !== id)
 }
 
-function useItem(id: number) {
+function useItem(id: number | undefined) {
   indexedDBUtil.openCursor(indexedDBUtil.storageObjectStore, (objectStore, cursor) => {
     if (cursor) {
       const f: CustomStorage = cursor.value;
