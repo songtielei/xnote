@@ -71,6 +71,7 @@ const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirect
     if (h.kind === 'directory') {
       const childList = await recursiveGetTreeData(parentPath + '/' + handle.name, h);
       contentList.push(...childList);
+      continue;
     }
     const file = await h.getFile()
     if (file === null || file.name.startsWith('.')) {
