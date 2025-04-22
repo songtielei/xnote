@@ -74,7 +74,7 @@ const recursiveGetTreeData = async (parentPath: string, directoryHandle: FileSys
         expanded: false,
         children: []
     }
-    for await (const h of directoryHandle.values()) {
+    for await (const h of (directoryHandle as any).values()) {
         if (h.kind === 'file') {
             continue;
         }

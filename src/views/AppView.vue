@@ -17,7 +17,7 @@
 
 
   </div>
-  <Content v-if="dataLoaded" :currentFileItem="currentFileItem" @update:list="updateList"></Content>
+  <Content v-if="dataLoaded && currentFileItem" :currentFileItem="currentFileItem" @update:list="updateList"></Content>
   <Modal ref="modalConfirmRef">
     <button @click="confirmDirHandle">确认</button>
   </Modal>
@@ -56,7 +56,7 @@ const selectDir = async (treeNode: TreeNode) => {
   path = treeNode.path;
   const now = new Date(); // 当前时间
   const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, now);
-  contentList.value.push(...noteList.data);
+  contentList.value.push(...(noteList as any).data);
   currentFileItem.value = contentList.value[0];
   dataLoaded.value = true;
 }

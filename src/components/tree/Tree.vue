@@ -1,7 +1,7 @@
 <template>
-  <input type="text" placeholder="Search..." :value="selectDir" @click="showIndex = true" />
-  <ul class="tree" v-show="showIndex">
-    <TreeNode v-for="node in $props.data" :key="node.id" :node="node" @toggle="onToggle" @select="onSelect" />
+  <input type="text" placeholder="Search..." :value="selectDir" @click="show = true" />
+  <ul class="tree" v-show="show">
+    <TreeNode v-for="node in $props.data" :key="(node as any).id" :node="(node as any)" @toggle="onToggle" @select="onSelect" />
   </ul>
 </template>
 
@@ -23,6 +23,7 @@ const props = defineProps({
     default: false
   }
 });
+let show = props.showIndex;
 
 const treeData = ref(props.data);
 

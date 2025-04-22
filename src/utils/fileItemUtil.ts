@@ -1,4 +1,4 @@
-import type { FileItem } from '@/components/content/types.ts'
+import type { FileItem } from '@/components/content/types'
 import { parse, stringify } from '@/utils/front_matter'
 import { getObjectStore, noteObjectStore } from '@/utils/indexedDBUtil'
 

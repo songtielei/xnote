@@ -37,7 +37,10 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
         }
     })
 }
-const db: IDBDatabase = await openDB(dbName, 7)
+let db: IDBDatabase;
+(async () => {
+    db = await openDB(dbName, 7);
+})();
 
 export interface CustomStorage {
     id?: number
