@@ -69,8 +69,9 @@ const content = (item: FileItem) => {
 const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirectoryHandle): Promise<FileItem[]> => {
   const contentList: FileItem[] = [];
   for await (const h of (handle as any).values()) {
+    
     if (h.kind === 'directory') {
-      const childList = await recursiveGetTreeData(parentPath + '/' + handle.name, h);
+      const childList = await recursiveGetTreeData(parentPath + '/' + h.name, h);
       contentList.push(...childList);
       continue;
     }
@@ -170,7 +171,6 @@ const newFile = async () => {
   const name = Date.now();
   const ext = '.md';
   const draftHandle = await currentDir.getFileHandle(name + ext, { create: true });
-
   const fileItem: FileItem = {
     id: name,
     name: name.toString(),
