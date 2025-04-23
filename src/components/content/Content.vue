@@ -99,13 +99,32 @@ onMounted(async () => {
         padding: 0.2em 0.5em;
 
         >.title {
-            width: 300px;
-            height: 20px;
+            width: 500px;
+            background-color: transparent;
+            background-image: none;
+            border: 1px solid #000;
+            box-sizing: border-box;
+            line-height: 1;
+            outline: none;
+            padding: 0 0 0 8px;
+            height: 100%;
+            border-radius: 4px;
+            &:focus {
+                border-color: #409eff;
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+            }
         }
 
 
         >.save {
             margin-left: auto;
+            width: 50px;
+            height: 100%;
+            background-color: transparent;
+            border: 1px solid #000;
+            border-radius: 4px;
+            cursor: pointer;
         }
     }
 
@@ -132,8 +151,21 @@ onMounted(async () => {
         }
 
         >.addTag {
-            width: 60px;
-            height: 20px;
+            width: 70px;
+            background-color: transparent;
+            background-image: none;
+            border: 1px solid #000;
+            box-sizing: border-box;
+            line-height: 1;
+            outline: none;
+            padding: 0 0 0 8px;
+            height: 100%;
+            border-radius: 4px;
+            &:focus {
+                border-color: #409eff;
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+            }
         }
     }
 }

@@ -41,9 +41,21 @@ function onSelect(node) {
 
 <style scoped lang="scss">
 input {
-  width: 200px;
-  padding: 5px;
-  margin-bottom: 10px;
+  background-color: transparent;
+  background-image: none;
+  border: 1px solid #000;
+  box-sizing: border-box;
+  width: 100%;
+  line-height: 1;
+  outline: none;
+  padding: 0 0 0 8px;
+  height: 100%;
+  border-radius: 4px;
+  &:focus {
+    border-color: #409eff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+  }
 }
 .tree {
   position: relative;

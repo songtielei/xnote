@@ -62,7 +62,6 @@ main {
         width: 50px;
         border-radius: 5px;
         border: solid 1px;
-        height: calc(100% - 8px);
         display: flex;
         flex-direction: column;
         align-items: center;

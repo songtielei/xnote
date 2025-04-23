@@ -19,7 +19,7 @@
   </div>
   <Content v-if="dataLoaded && currentFileItem" :currentFileItem="currentFileItem" @update:list="updateList"></Content>
   <Modal ref="modalConfirmRef">
-    <button @click="confirmDirHandle">确认</button>
+    <button type="button" @click="confirmDirHandle">确认</button>
   </Modal>
 </template>
 <script setup lang="ts">
@@ -261,26 +261,49 @@ onBeforeMount(async () => {
 
   //background-color: white;
   >.nav-search {
+    height: 30px;
+    padding: 4px 8px;
+    border-bottom: solid 1px #ccc;
     >input {
+      background-color: transparent;
+      background-image: none;
+      border: 1px solid #000;
+      box-sizing: border-box;
       width: 100%;
+      line-height: 1;
+      outline: none;
+      padding: 0 0 0 8px;
+      height: 100%;
+      border-radius: 4px;
+      &:focus {
+        border-color: #409eff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+      }
+      
     }
   }
 
   >.nav-workspace {
+    display: flex;
+    gap: 10px;
+    align-items: center;
     position: relative;
     border-bottom: solid 1px;
     height: 30px;
-    padding: 0;
+    padding: 0.2em 0.5em;
 
     >span {
       flex: 1;
     }
 
     >button {
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      width: 70px;
+      width: 50px;
+      height: 100%;
+      background-color: transparent;
+      border: 1px solid #000;
+      border-radius: 4px;
+      cursor: pointer;
     }
 
   }
