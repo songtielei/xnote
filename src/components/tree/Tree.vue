@@ -23,7 +23,7 @@ const props = defineProps({
     default: false
   }
 });
-let show = props.showIndex;
+let show = ref(props.showIndex);
 
 const treeData = ref(props.data);
 
@@ -58,7 +58,7 @@ input {
   }
 }
 .tree {
-  position: relative;
+  position: absolute;
   margin: 0 20px 0 0;
   list-style: none;
   background-color: white;
@@ -66,5 +66,6 @@ input {
   border: 1px solid #ccc;
   border-radius: 4px;
   overflow: auto;
+  top: 34px;
 }
 </style>

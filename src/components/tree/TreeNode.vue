@@ -53,7 +53,7 @@ function handleSelect() {
 <style scoped lang="scss">
 .tree-node {
     list-style: none;
-    margin: 4px 0;
+    margin: 0px 0;
 
     >.node-content {
         display: flex;
