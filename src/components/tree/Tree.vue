@@ -1,6 +1,7 @@
 <template>
   <input type="text" placeholder="Search..." :value="selectDir" @click="show = true" />
   <ul class="tree" v-show="show">
+    <!-- <ul class="tree" v-show="show" v-click-outside="handleClickOutside"> -->
     <TreeNode v-for="node in $props.data" :key="(node as any).id" :node="(node as any)" @toggle="onToggle" @select="onSelect" />
   </ul>
 </template>
@@ -35,8 +36,17 @@ function onToggle(node) {
 
 function onSelect(node) {
   emit('node-select', node);
+  show.value = false;
 }
 
+function handleClickOutside(event: MouseEvent) {
+  console.log('点击了元素外部', show.value)
+  if (show.value) {
+    show.value = false;
+  }
+
+  // 在这里执行关闭菜单或其他逻辑
+}
 </script>
 
 <style scoped lang="scss">

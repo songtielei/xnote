@@ -53,6 +53,7 @@ const updateList = (fileItem: FileItem) => {
 
 let path;
 const selectDir = async (treeNode: TreeNode) => {
+  contentList.value = [];
   path = treeNode.path;
   const now = new Date(); // 当前时间
   const noteList = await indexedDBUtil.getNoteByPath(treeNode.path, now);
