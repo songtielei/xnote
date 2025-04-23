@@ -93,8 +93,8 @@ const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirect
       title: parsedMarkdown.title,
       summary: parsedMarkdown._content.substring(0, 30),
       tags: parsedMarkdown.tags,
-      updated: parsedMarkdown.updated || new Date(),
-      date: parsedMarkdown.date || new Date(),
+      updated: parsedMarkdown.updated || file.lastModified || new Date(),
+      date: parsedMarkdown.date || file.lastModified || new Date(),
       handle: h,
     }
     contentList.push(fileItem)
