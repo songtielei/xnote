@@ -15,18 +15,19 @@
                 </div>
                 <div>退出</div>
             </div>
-            <router-link to="/note">
+            <router-link to="/note" active-class="active-link" class="nav-link">
                 <div>笔记</div>
             </router-link>
-            <router-link to="/web-clipper">
+            <router-link to="/web-clipper" active-class="active-link" class="nav-link">
                 <div>剪藏</div>
             </router-link>
             <!--
             <div>密码</div>
             <div>任务</div>
             -->
-            <div>标签</div>
-
+            <router-link to="/tag" active-class="active-link" class="nav-link">
+                <div>标签</div>
+            </router-link>
             <div class="setting" @click="openSetting">
                 仓库
             </div>
@@ -65,10 +66,7 @@ main {
         display: flex;
         flex-direction: column;
         align-items: center;
-
-        div {
-            margin-bottom: 5px;
-        }
+        gap: 10px;
 
         >.account {
             padding: 0;
@@ -84,7 +82,20 @@ main {
                 /* 阻止图片下方出现额外的空间 */
             }
         }
-
+        >.nav-link {
+            font-size: 14px;
+            text-decoration: none;
+            padding: 0.4em 0.4em;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            color: black;
+            background-color: #f0f0f0;
+            box-shadow: 1px 2px 2px 1px black;
+        }
+        >.active-link {
+            background-color: #f0f0f0;
+            box-shadow: inset 1px 2px 1px 1px black;
+        }
         >.setting {
             margin-top: auto;
             cursor: pointer;
