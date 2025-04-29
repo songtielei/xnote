@@ -90,11 +90,11 @@ main {
             transition: all 0.3s ease;
             color: black;
             background-color: #f0f0f0;
-            box-shadow: 1px 2px 2px 1px black;
+            box-shadow: 1px 1px 1px 1px black;
         }
         >.active-link {
             background-color: #f0f0f0;
-            box-shadow: inset 1px 2px 1px 1px black;
+            box-shadow: inset 1px 1px 1px 1px black;
         }
         >.setting {
             margin-top: auto;
