@@ -114,7 +114,7 @@ const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirect
 
 // 搜索内容
 interface SearchContent {
-  id: number;
+  id: string;
   title: string;
   content: string;
 }

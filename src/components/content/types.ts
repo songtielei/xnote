@@ -1,5 +1,5 @@
 export interface FileItem {
-    id: number
+    id: string
     path: string
     name: string
     url: string
