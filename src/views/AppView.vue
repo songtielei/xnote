@@ -171,12 +171,12 @@ const newFile = async () => {
   for (let i = 0; i < parts.length; i++) {
       currentDir = await currentDir.getDirectoryHandle(parts[i]);
   }
-  const name = Date.now();
+  const name = uuidv4();
   const ext = '.md';
   const draftHandle = await currentDir.getFileHandle(name + ext, { create: true });
   const fileItem: FileItem = {
     id: name,
-    name: name.toString(),
+    name: name,
     path: path,
     title: '新建文件',
     summary: '',
