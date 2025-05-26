@@ -1,4 +1,5 @@
 import FlexSearch, { Index, Document } from 'flexsearch';
+import type { IndexOptions } from 'flexsearch';
 // chinese-tokenizer.ts
 import { 
   Segment,
@@ -24,7 +25,7 @@ function  tokenizeChinese(text: string): string[] {
  */
 export interface FlexSearchOptions<T> {
   // 索引配置
-  indexConfig?: FlexSearch.IndexOptions;
+  indexConfig?: IndexOptions;
   // 是否启用异步搜索
   // async?: boolean;
   // 是否启用 Worker
