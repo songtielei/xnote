@@ -36,6 +36,7 @@ import moment from 'moment';
 import type { FileItem } from '@/components/content/types'
 import { parse, stringify } from '@/utils/front_matter'
 import { saveItem } from '@/utils/fileItemUtil'
+import { v4 as uuidv4 } from 'uuid';
 
 const route = useRoute();
 const storageLoaded = ref(false);
@@ -86,7 +87,7 @@ const recursiveGetTreeData = async (parentPath: string, handle: FileSystemDirect
     const text = await file.text()
     const parsedMarkdown = parse(text)
     const fileItem = {
-      id: Date.now(),
+      id: uuidv4(),
       path: parentPath,
       name: file.name.slice(0, -3),
       url: '',
@@ -148,12 +149,14 @@ async function performSearch() {
  */
 async function addFileItemToDB(handle: FileSystemDirectoryHandle) {
   const contentList = await recursiveGetTreeData(handle.name, handle);
-  const objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.noteObjectStore);
+  let objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.noteObjectStore);
   objectStore.clear();
   console.log('开始添加数据到indexedDB...')
-  contentList.forEach((item) => {
+  contentList.forEach(async (item) => {
+    objectStore = await indexedDBUtil.getObjectStore(indexedDBUtil.noteObjectStore);
     const r = objectStore.add(item);
     r.onerror = (err) => {
+      console.log(item);
       console.log('添加失败', err);
     }
   })
