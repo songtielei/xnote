@@ -39,11 +39,10 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
           version: 10.11.0
-          run_install: true
-          args: --frozen-lockfile
+          run_install: false
 
       - name: Install dependencies
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm run build
       - name: Setup Pages
