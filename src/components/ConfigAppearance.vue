@@ -14,14 +14,19 @@ async function requestPermission(dirHandle: FileSystemDirectoryHandle, mode = 'r
 
   const request = await (dirHandle as any).requestPermission(options).catch((error) => {
     console.log('权限请求失败:', error);
-    Message.error('权限请求被拒绝，请检查浏览器设置');
+    Message({
+      type: 'error',
+      message: '权限请求失败，请检查浏览器设置'
+    });
   });
   console.log('权限请求结果:', request);
   if (request === 'granted') {
     return true;
   }
-
-    Message.error('权限请求被拒绝，请检查浏览器设置');
+    Message({
+      type: 'error',
+      message: '权限请求失败，请检查浏览器设置'
+    });
   return false;
 }
 

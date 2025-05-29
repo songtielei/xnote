@@ -41,9 +41,6 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
     })
 }
 let db: IDBDatabase;
-await (async () => {
-    db = await openDB(dbName, 7);
-})();
 
 export interface CustomStorage {
     id: number
@@ -84,6 +81,9 @@ export const closeDB = () => {
 }
 
 export const getObjectStore = async (objectStoreName: string) => {
+    if (!db) {
+        db = await openDB(dbName, 7);
+    }
     const transaction: IDBTransaction = db.transaction(objectStoreName, 'readwrite');
     return transaction.objectStore(objectStoreName)
 }
