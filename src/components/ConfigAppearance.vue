@@ -2,9 +2,28 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { CustomStorage } from '@/utils/indexedDBUtil'
 import * as indexedDBUtil from '@/utils/indexedDBUtil'
+import { useRouter } from 'vue-router'
+import Message from '@/components/message/message.js';
 
+const router = useRouter();
 const storageList = ref<CustomStorage[]>([])
 let fileHandle: FileSystemDirectoryHandle
+
+async function requestPermission(dirHandle: FileSystemDirectoryHandle, mode = 'readwrite'): Promise<boolean> {
+  const options = { mode };
+
+  const request = await (dirHandle as any).requestPermission(options).catch((error) => {
+    console.log('权限请求失败:', error);
+    Message.error('权限请求被拒绝，请检查浏览器设置');
+  });
+  console.log('权限请求结果:', request);
+  if (request === 'granted') {
+    return true;
+  }
+
+    Message.error('权限请求被拒绝，请检查浏览器设置');
+  return false;
+}
 
 // file picker
 async function getFileHandle() {
@@ -55,12 +74,15 @@ async function deleteItem(id: number | undefined) {
   storageList.value = storageList.value.filter(item => item.id !== id)
 }
 
-function useItem(id: number | undefined) {
+const activeStorage = ref<CustomStorage>();
+
+async function useItem(id: number | undefined) {
   indexedDBUtil.openCursor(indexedDBUtil.storageObjectStore, (objectStore, cursor) => {
     if (cursor) {
       const f: CustomStorage = cursor.value;
       if (f.id === id) {
         f.active = 'true'
+        activeStorage.value = f;
       } else {
         f.active = 'false'
       }
@@ -72,6 +94,21 @@ function useItem(id: number | undefined) {
       restoreHandle();
     }
   })
+}
+
+async function openItem(id: number) {
+  const storage = await indexedDBUtil.getStorageById(id);
+  if (!storage) {
+    console.log('没有找到对应的存储');
+    return;
+  }
+  const hasPermission = await requestPermission(storage.file, 'readwrite');
+  if (!hasPermission) {
+    console.log('没有权限访问目录');
+    return;
+  }
+
+  router.push({name: 'note'})
 }
 
 onMounted(() => {
@@ -94,7 +131,8 @@ onUnmounted(() => {
       </div>
       <div class="workspace-item" v-for="item in storageList" :key="item.id">
         <span>{{ item.file.name }} </span>
-        <button @click="useItem(item.id)" :disabled="item.active === 'true'">使用</button>
+        <button @click="openItem(item.id)">打开</button>
+        <button @click="useItem(item.id)" :disabled="item.active === 'true'">默认</button>
         <button @click="deleteItem(item.id)">删除</button>
       </div>
     </div>
@@ -105,9 +143,10 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .container {
   display: flex;
-  height: calc(100% - 40px);
   border-radius: 5px;
-
+  width: calc(100% - 20px);
+  border: 1px solid black;
+  margin: 4px;
   .sidebar {
     width: 100px;
     height: 100%;

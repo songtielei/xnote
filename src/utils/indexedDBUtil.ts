@@ -41,12 +41,12 @@ const openDB = (dbName: string, version: number): Promise<IDBDatabase> => {
     })
 }
 let db: IDBDatabase;
-(async () => {
+await (async () => {
     db = await openDB(dbName, 7);
 })();
 
 export interface CustomStorage {
-    id?: number
+    id: number
     active: string
     file: FileSystemDirectoryHandle
 }
@@ -116,6 +116,20 @@ export const getStorageArray = async (): Promise<CustomStorage[]> => {
             } else {
                 resolve(storageArray)
             }
+        }
+        req.onerror = (event: IDBRequestEventMap['error']) => {
+            console.error('打开游标时出错: ', (event.target as IDBRequest).error)
+            reject((event.target as IDBRequest).error)
+        }
+    })
+}
+
+export const getStorageById = async (id: number): Promise<CustomStorage> => {
+    const objectStore: IDBObjectStore = await getObjectStore(storageObjectStore)
+    const req: IDBRequest = objectStore.get(id)
+    return new Promise<CustomStorage>((resolve, reject) => {
+        req.onsuccess = (event: IDBRequestEventMap['success']) => {
+            resolve((event.target as IDBRequest).result)
         }
         req.onerror = (event: IDBRequestEventMap['error']) => {
             console.error('打开游标时出错: ', (event.target as IDBRequest).error)

@@ -28,27 +28,21 @@
             <router-link to="/tag" active-class="active-link" class="nav-link">
                 <div>标签</div>
             </router-link>
-            <div class="setting" @click="openSetting">
-                仓库
-            </div>
+            <router-link to="/settings" active-class="active-link" class="nav-link setting">
+                <div>设置</div>
+            </router-link>
         </div>
         <router-view></router-view>
     </main>
-
-    <Modal ref="modalSettingRef">
-        <Appearance />
-    </Modal>
+    <CustomModal ref="modalConfirmRef">
+        <button type="button">确认</button>
+    </CustomModal>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
-import Appearance from '@/components/ConfigAppearance.vue';
-import Modal from '@/components/Modal.vue';
-
+import { ref, onBeforeMount } from 'vue';
+import CustomModal from '@/components/CustomModal.vue';
 let showAccount = ref(false);
-const modalSettingRef = ref();
-const openSetting = () => {
-  modalSettingRef.value.open();
-}
+
 </script>
 <style scoped lang="scss">
 main {
@@ -98,7 +92,6 @@ main {
         }
         >.setting {
             margin-top: auto;
-            cursor: pointer;
         }
     }
 

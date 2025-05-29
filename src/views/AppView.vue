@@ -18,9 +18,6 @@
 
   </div>
   <Content v-if="dataLoaded && currentFileItem" :currentFileItem="currentFileItem" @update:list="updateList"></Content>
-  <Modal ref="modalConfirmRef">
-    <button type="button" @click="confirmDirHandle">确认</button>
-  </Modal>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, onBeforeMount } from 'vue';
@@ -31,7 +28,6 @@ import { FlexSearchHelper } from '@/utils/flexsearch-helper'
 import Content from '@/components/content'
 import DirTree from '@/components/DirTree.vue'
 import type { TreeNode } from '@/components/DirTree.vue'
-import Modal from '@/components/Modal.vue'
 import moment from 'moment';
 import type { FileItem } from '@/components/content/types'
 import { parse, stringify } from '@/utils/front_matter'
@@ -189,52 +185,6 @@ const newFile = async () => {
   saveItem(fileItem, '');
   contentList.value.unshift(fileItem);
 }
-// 进入页面时检测是否有默认的文件夹
-// 如果没有则打开设置页面 新建或选择文件夹
-// 如果有则进入首页
-
-async function queryPermission(dirHandle: FileSystemDirectoryHandle, mode = 'readwrite'): Promise<boolean> {
-  const options = { mode };
-  console.log(dirHandle);
-  // 检查当前权限状态
-  const query = await (dirHandle as any).queryPermission(options).catch((error) => {
-    console.log('权限查询失败:', error);
-  });
-  console.log('权限查询结果:', query);
-  if (query === 'granted') {
-    return true;
-  }
-
-  return false;
-}
-async function requestPermission(dirHandle: FileSystemDirectoryHandle, mode = 'readwrite'): Promise<boolean> {
-  const options = { mode };
-
-  const request = await (dirHandle as any).requestPermission(options).catch((error) => {
-    console.log('权限请求失败:', error);
-  });
-  console.log('权限请求结果:', request);
-  if (request === 'granted') {
-    return true;
-  }
-
-  return false;
-}
-
-const modalConfirmRef = ref();
-const openConfirm = () => {
-  modalConfirmRef.value.open();
-}
-const confirmDirHandle = async () => {
-  if (!activeStorage.value) {
-    return;
-  }
-  const hasPermission = await requestPermission(activeStorage.value.file, 'readwrite');
-  if (!hasPermission) {
-    return;
-  }
-  modalConfirmRef.value.close();
-}
 
 const activeStorage = ref<CustomStorage>();
 onBeforeMount(async () => {
@@ -244,11 +194,6 @@ onBeforeMount(async () => {
     return;
   }
 
-  const hasPermission = await queryPermission(activeStorage.value.file);
-  if (!hasPermission) {
-    openConfirm();
-    return;
-  }
   const noteDirectoryHandle = await activeStorage.value?.file.getDirectoryHandle(workspace, { create: true });
   await addFileItemToDB(noteDirectoryHandle);
   // 全部加载完成后 再加载 dirtree
