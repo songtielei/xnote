@@ -14,8 +14,28 @@
     } 
 
     </style>
+    <script>
+      // 单页应用 404 解决方案
+      sessionStorage.redirect = location.pathname;
+    </script>
   </head>
   <body>
+    <script>
+      // 处理单页应用（SPA）的 404 页面跳转问题，让用户在刷新页面后能回到之前访问的路由
+      (function(){
+        // 从 sessionStorage 中获取之前存储的 redirect 变量值
+        // 该变量存储的是用户在单页应用中访问的路径
+        var redirect = sessionStorage.redirect;
+        // 从 sessionStorage 中删除 redirect 变量，避免后续操作受到干扰
+        delete sessionStorage.redirect;
+        // 检查 redirect 变量是否存在，并且当前页面路径与 redirect 存储的路径不一致
+        if (redirect && redirect != location.pathname) {
+          // 使用 history.replaceState 方法将当前浏览器历史记录替换为 redirect 存储的路径
+          // 此方法不会触发页面刷新，只是改变浏览器地址栏的 URL
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
